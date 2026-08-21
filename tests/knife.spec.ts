@@ -49,46 +49,8 @@ const chunkRow = (page: Page, text: string) =>
     .getByTestId("chunk-list")
     .getByRole("button", { exact: false, name: text });
 
-type NodePosition = { id: string; x: number; y: number };
-
-/**
- * Клик по координатам узла, которые граф публикует, когда симуляция улеглась.
- * Раньше здесь был перебор сетки из 126 слепых кликов — он попадал по узлу
- * через оконный слушатель, то есть проходил бы и на сломанном графе.
- */
-const clickAnyGraphNode = async (page: Page): Promise<string> => {
-  const canvas = page.getByTestId("graph").locator("canvas");
-  await expect(canvas).toBeVisible();
-
-  await expect
-    .poll(async () => (await canvas.getAttribute("data-nodes")) !== null, {
-      message: "граф так и не разложил узлы",
-      timeout: 20000,
-    })
-    .toBe(true);
-
-  const positions = JSON.parse(
-    (await canvas.getAttribute("data-nodes")) ?? "[]",
-  ) as NodePosition[];
-
-  const box = await canvas.boundingBox();
-  const target = positions.find(
-    (node) =>
-      box !== null &&
-      node.x > 0 &&
-      node.y > 0 &&
-      node.x < box.width &&
-      node.y < box.height,
-  );
-
-  if (!box || !target) {
-    throw new Error("ни один узел не оказался в видимой части графа");
-  }
-
-  await page.mouse.click(box.x + target.x, box.y + target.y);
-
-  return target.id;
-};
+const wordRow = (page: Page, label: RegExp | string) =>
+  page.getByTestId("word-list").getByRole("button", { name: label });
 
 test.describe("Вселенная требований, в которой можно ориентироваться", () => {
   test("Приношу простыню", async ({ page }) => {
@@ -232,34 +194,30 @@ test.describe("Вселенная требований, в которой мож
     ).toBeVisible();
   });
 
-  test("Слово ведёт к связям и вхождениям: кликаю по слову на графе", async ({
+  test("Слово ведёт к связям и вхождениям: кликаю по слову в списке", async ({
     page,
   }) => {
     await createProject(page);
     await bringSheet(page, SHEET);
 
-    await page.getByRole("button", { name: "Words" }).click();
-    await clickAnyGraphNode(page);
+    await wordRow(page, /^auditor \d+$/).click();
 
     const word = page.getByTestId("word-inspector");
     await expect(word).toContainText("Travels with");
     await expect(word).toContainText(/Appears in \d+ chunks/);
   });
 
-  test("Хожу между графом и текстом", async ({ page }) => {
+  test("Хожу между списком слов и текстом", async ({ page }) => {
     await createProject(page);
     await bringSheet(page, SHEET);
 
-    // Кликаю по узлу графа — попадаю на этот чанк
-    await clickAnyGraphNode(page);
-    await expect(page.getByTestId("chunk-inspector")).toBeVisible();
+    // Из слова попадаю в чанки, где оно есть
+    await wordRow(page, /^peacocks? \d+$/).click();
+    const word = page.getByTestId("word-inspector");
+    await expect(word).toContainText("Peacocks roam the orangery");
 
-    // И наоборот: из чанка попадаю в его место на графе
-    await page.getByPlaceholder(/Search a word/).fill("peacock");
-    await chunkRow(page, "Peacocks roam the orangery unsupervised.").click();
-    await expect(page.getByRole("button", { name: "Chunks" })).toHaveClass(
-      /border-accent/,
-    );
+    // И обратно: из вхождения — в сам чанк
+    await word.getByRole("button", { name: /Peacocks roam/ }).click();
     await expect(page.getByTestId("chunk-inspector")).toContainText("Peacocks");
   });
 

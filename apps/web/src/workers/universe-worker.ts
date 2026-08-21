@@ -1,5 +1,5 @@
 import { buildUniverseIndex } from "@/services/universe/build-universe-index";
-import { buildWordGraph } from "@/services/universe/build-word-graph";
+import { listWords } from "@/services/universe/list-words";
 import { describeWord } from "@/services/universe/describe-word";
 import { detectWater } from "@/services/universe/detect-water";
 import { findDanglingChunks } from "@/services/universe/find-dangling-chunks";
@@ -29,7 +29,7 @@ const analyse = (
       dangling: findDanglingChunks(index),
       duplicates: findDuplicatePairs(index),
       water: detectWater(index),
-      wordGraph: buildWordGraph(index),
+      words: listWords(index),
     },
     type: "analysed",
   });

@@ -1,22 +1,20 @@
 import { useStore } from "@nanostores/react";
-import { type JSX, useCallback, useEffect, useMemo } from "react";
+import { type JSX, useEffect, useMemo } from "react";
 import { ChunkInspector } from "@/components/chunk-inspector";
 import { ChunkList } from "@/components/chunk-list";
 import { FailureBanner } from "@/components/failure-banner";
 import { FileImport } from "@/components/file-import";
-import { GraphCanvas } from "@/components/graph-canvas";
 import { LintPanel } from "@/components/lint-panel";
 import { NewChunkForm } from "@/components/new-chunk-form";
 import { ProjectBar } from "@/components/project-bar";
 import { SearchBox } from "@/components/search-box";
 import { ThresholdSlider } from "@/components/threshold-slider";
 import { WordInspector } from "@/components/word-inspector";
+import { WordList } from "@/components/word-list";
 import { attempt } from "@/stores/failure-store";
 import { $lintReport, checkLinters } from "@/stores/lint-store";
 import { $currentProjectId, loadProjects } from "@/stores/projects-store";
-import { $graphMode, setGraphMode } from "@/stores/settings-store";
 import {
-  $chunkGraph,
   $chunks,
   $danglingIds,
   $duplicatesAboveThreshold,
@@ -31,19 +29,12 @@ import {
   selectChunk,
   selectWord,
 } from "@/stores/universe-store";
-import type { CanvasLink, CanvasNode } from "@/types/canvas-graph";
-
-const TAG = "rounded border px-1.5 text-[11px] not-italic";
-const WORD_NODE_RADIUS = 4;
-const CHUNK_NODE_RADIUS = 5;
 
 export const UniversePage = (): JSX.Element => {
   const projectId = useStore($currentProjectId);
   const chunks = useStore($chunks);
   const report = useStore($report);
-  const graphMode = useStore($graphMode);
   const duplicates = useStore($duplicatesAboveThreshold);
-  const chunkGraph = useStore($chunkGraph);
   const waterByChunk = useStore($waterByChunk);
   const danglingIds = useStore($danglingIds);
   const selectedChunkId = useStore($selectedChunkId);
@@ -85,60 +76,6 @@ export const UniversePage = (): JSX.Element => {
     [chunkById, chunks, searchHits],
   );
 
-  const nodes: CanvasNode[] = useMemo(() => {
-    if (graphMode === "words") {
-      return (report?.wordGraph.nodes ?? []).map((node) => ({
-        id: node.stem,
-        label: node.label,
-        radius: WORD_NODE_RADIUS + Math.min(6, Math.log2(node.chunkCount + 1)),
-        tone: "plain" as const,
-      }));
-    }
-
-    return chunkGraph.nodes.map((node) => ({
-      id: node.id,
-      label: node.preview.slice(0, 40),
-      radius: CHUNK_NODE_RADIUS,
-      tone:
-        node.id === selectedChunkId
-          ? ("selected" as const)
-          : node.isWater
-            ? ("water" as const)
-            : node.isDangling
-              ? ("dangling" as const)
-              : duplicateIds.has(node.id)
-                ? ("duplicate" as const)
-                : ("plain" as const),
-    }));
-  }, [chunkGraph, duplicateIds, graphMode, report, selectedChunkId]);
-
-  const links: CanvasLink[] = useMemo(() => {
-    if (graphMode === "words") {
-      const graph = report?.wordGraph;
-      const heaviest = graph?.links[0]?.weight ?? 1;
-      return (graph?.links ?? []).map((link) => ({
-        source: link.source,
-        strength: link.weight / heaviest,
-        target: link.target,
-      }));
-    }
-
-    return chunkGraph.links.map((link) => ({
-      source: link.source,
-      strength: link.similarity,
-      target: link.target,
-    }));
-  }, [chunkGraph, graphMode, report]);
-
-  const onPick = useCallback((id: string): void => {
-    if ($graphMode.get() === "words") {
-      selectWord(id);
-      selectChunk(undefined);
-      return;
-    }
-    selectChunk(id);
-  }, []);
-
   const selectedChunk = selectedChunkId
     ? chunkById.get(selectedChunkId)
     : undefined;
@@ -179,34 +116,12 @@ export const UniversePage = (): JSX.Element => {
           shown={duplicates.length}
           total={report?.duplicates.pairs.length ?? 0}
         />
-        <div className="flex gap-1">
-          <button
-            className={
-              graphMode === "chunks" ? "border-accent text-accent" : ""
-            }
-            onClick={() => {
-              setGraphMode("chunks");
-            }}
-            type="button"
-          >
-            Chunks
-          </button>
-          <button
-            className={graphMode === "words" ? "border-accent text-accent" : ""}
-            onClick={() => {
-              setGraphMode("words");
-            }}
-            type="button"
-          >
-            Words
-          </button>
-        </div>
         <LintPanel chunks={chunks} />
       </div>
 
       <FailureBanner />
 
-      <main className="grid min-h-0 flex-1 grid-cols-[minmax(280px,1fr)_minmax(400px,1.6fr)_minmax(0,1fr)]">
+      <main className="grid min-h-0 flex-1 grid-cols-[minmax(320px,1.4fr)_minmax(220px,0.6fr)_minmax(0,1fr)]">
         <section className="overflow-y-auto border-r border-line p-3">
           {projectId ? (
             <>
@@ -226,35 +141,25 @@ export const UniversePage = (): JSX.Element => {
             chunks={listedChunks}
             danglingIds={danglingIds}
             duplicateIds={duplicateIds}
-            onOpen={(id) => {
-              selectChunk(id);
-              setGraphMode("chunks");
-            }}
+            onOpen={selectChunk}
             selectedId={selectedChunkId}
             spansByChunk={spansByChunk}
             waterIds={new Set(waterByChunk.keys())}
           />
         </section>
 
-        <section className="relative min-h-0" data-testid="graph">
-          <GraphCanvas links={links} nodes={nodes} onPick={onPick} />
-          <p className="absolute bottom-2 left-3 flex items-center gap-2 text-xs">
-            <em className={`${TAG} text-dup`}>duplicate</em>
-            <em className={`${TAG} text-water`}>water</em>
-            <em className={`${TAG} text-hang`}>hanging</em>
-            {chunkGraph.droppedNodes > 0 && graphMode === "chunks" ? (
-              <span className="text-faint">
-                {chunkGraph.droppedNodes} quieter chunks not drawn
-              </span>
-            ) : null}
-            {report &&
-            report.wordGraph.droppedNodes > 0 &&
-            graphMode === "words" ? (
-              <span className="text-faint">
-                {report.wordGraph.droppedNodes} rarer words not drawn
-              </span>
-            ) : null}
-          </p>
+        <section className="overflow-y-auto border-r border-line p-3">
+          <h2 className="mb-2 text-xs tracking-wider text-faint uppercase">
+            Words
+          </h2>
+          <WordList
+            onPick={(stem) => {
+              selectChunk(undefined);
+              selectWord(stem);
+            }}
+            selectedStem={wordProfile?.stem}
+            words={report?.words ?? []}
+          />
         </section>
 
         {selectedChunk ? (
@@ -266,9 +171,7 @@ export const UniversePage = (): JSX.Element => {
             onDelete={() => {
               attempt(deleteChunk(projectId, selectedChunk.id));
             }}
-            onOpenNeighbour={(id) => {
-              selectChunk(id);
-            }}
+            onOpenNeighbour={selectChunk}
             spans={spansByChunk.get(selectedChunk.id) ?? []}
             water={waterByChunk.get(selectedChunk.id)}
           />
@@ -277,10 +180,7 @@ export const UniversePage = (): JSX.Element => {
         {!selectedChunk && wordProfile ? (
           <WordInspector
             chunkById={chunkById}
-            onOpenChunk={(id) => {
-              selectChunk(id);
-              setGraphMode("chunks");
-            }}
+            onOpenChunk={selectChunk}
             onPickWord={selectWord}
             profile={wordProfile}
           />

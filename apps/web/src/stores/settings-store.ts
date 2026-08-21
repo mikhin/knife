@@ -1,5 +1,4 @@
 import { persistentAtom } from "@nanostores/persistent";
-import type { GraphMode } from "@/types/graph-mode";
 
 const asNumber = {
   decode: Number,
@@ -16,15 +15,6 @@ export const $similarityThreshold = persistentAtom<number>(
   asNumber,
 );
 
-export const $graphMode = persistentAtom<GraphMode>(
-  "knife:graph-mode",
-  "chunks",
-);
-
 export const setSimilarityThreshold = (value: number): void => {
   $similarityThreshold.set(value);
-};
-
-export const setGraphMode = (mode: GraphMode): void => {
-  $graphMode.set(mode);
 };

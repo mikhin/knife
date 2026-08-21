@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildUniverseIndex } from "@/services/universe/build-universe-index";
-import { buildWordGraph } from "@/services/universe/build-word-graph";
+import { listWords } from "@/services/universe/list-words";
 import { detectWater } from "@/services/universe/detect-water";
 import { findDanglingChunks } from "@/services/universe/find-dangling-chunks";
 import { findDuplicatePairs } from "@/services/universe/find-duplicate-pairs";
@@ -126,7 +126,7 @@ describe("a universe of tens of thousands of chunks", () => {
       const duplicates = findDuplicatePairs(index);
       const water = detectWater(index);
       const dangling = findDanglingChunks(index);
-      const graph = buildWordGraph(index);
+      const words = listWords(index);
       const elapsed = performance.now() - started;
 
       expect(index.size).toBe(UNIVERSE_SIZE + 1);
@@ -141,7 +141,7 @@ describe("a universe of tens of thousands of chunks", () => {
       // Висящий здесь ровно один, и он подсажен намеренно.
       expect(dangling).toEqual(["lonely"]);
 
-      expect(graph.nodes.length).toBeGreaterThan(0);
+      expect(words.length).toBeGreaterThan(0);
       expect(elapsed).toBeLessThan(BUDGET_MS);
     },
     BUDGET_MS + 15000,

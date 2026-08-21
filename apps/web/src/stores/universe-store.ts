@@ -2,7 +2,6 @@ import { atom, computed } from "nanostores";
 import { chunksApi } from "@/api/chunks-api";
 import { chunkSource } from "@/services/chunking/chunk-source";
 import { tokenizeText } from "@/services/text/tokenize-text";
-import { buildChunkGraph } from "@/services/universe/build-chunk-graph";
 import { $similarityThreshold } from "@/stores/settings-store";
 import type { Chunk } from "@knife/contract";
 import type { SourceFormat } from "@/types/source-format";
@@ -178,13 +177,4 @@ export const $waterByChunk = computed(
 export const $danglingIds = computed(
   $report,
   (report) => new Set(report?.dangling ?? []),
-);
-
-export const $chunkGraph = computed(
-  [$chunks, $duplicatesAboveThreshold, $waterByChunk, $danglingIds],
-  (chunks, pairs, water, dangling) =>
-    buildChunkGraph(chunks, pairs, {
-      dangling,
-      water: new Set(water.keys()),
-    }),
 );

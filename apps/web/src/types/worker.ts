@@ -3,7 +3,7 @@ import type {
   DuplicateReport,
   SearchHit,
   WaterVerdict,
-  WordGraph,
+  WordCount,
   WordProfile,
 } from "@/types/universe";
 
@@ -15,7 +15,7 @@ export type UniverseReport = {
   dangling: string[];
   duplicates: DuplicateReport;
   water: WaterVerdict[];
-  wordGraph: WordGraph;
+  words: WordCount[];
 };
 
 export type WorkerRequest =

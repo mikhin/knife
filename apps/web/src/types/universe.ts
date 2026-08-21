@@ -59,43 +59,10 @@ export type WaterVerdict = {
   findings: WaterFinding[];
 };
 
-export type WordNode = {
+export type WordCount = {
   chunkCount: number;
   label: string;
   stem: string;
-};
-
-export type WordLink = {
-  source: string;
-  target: string;
-  weight: number;
-};
-
-export type WordGraph = {
-  droppedLinks: number;
-  droppedNodes: number;
-  links: WordLink[];
-  nodes: WordNode[];
-};
-
-export type ChunkNode = {
-  createdAt: string;
-  id: string;
-  isDangling: boolean;
-  isWater: boolean;
-  preview: string;
-};
-
-export type ChunkLink = {
-  similarity: number;
-  source: string;
-  target: string;
-};
-
-export type ChunkGraph = {
-  droppedNodes: number;
-  links: ChunkLink[];
-  nodes: ChunkNode[];
 };
 
 export type SearchHit = {
@@ -109,7 +76,7 @@ export type WordOccurrence = {
 };
 
 export type WordProfile = {
-  companions: WordNode[];
+  companions: WordCount[];
   label: string;
   occurrences: WordOccurrence[];
   stem: string;
