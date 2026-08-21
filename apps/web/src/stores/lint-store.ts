@@ -7,6 +7,11 @@ export const $lintHealth = atom<LintHealth | undefined>(undefined);
 export const $lintReport = atom<LintReport | undefined>(undefined);
 export const $lintRunning = atom(false);
 
+/** How much of the universe the last run actually looked at. */
+export const $lintCoverage = atom<
+  undefined | { checked: number; total: number }
+>(undefined);
+
 export const checkLinters = async (): Promise<void> => {
   $lintHealth.set(await lintApi.health());
 };
@@ -17,6 +22,10 @@ export const checkLinters = async (): Promise<void> => {
  */
 export const runLinters = async (chunks: Chunk[]): Promise<void> => {
   $lintRunning.set(true);
+  $lintCoverage.set({
+    checked: Math.min(chunks.length, lintApi.batchSize),
+    total: chunks.length,
+  });
   try {
     const report = await lintApi.run(chunks);
     $lintReport.set(report);

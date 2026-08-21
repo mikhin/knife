@@ -9,6 +9,7 @@ import { ProjectBar } from "@/components/project-bar";
 import { SearchBox } from "@/components/search-box";
 import { ThresholdSlider } from "@/components/threshold-slider";
 import { WordInspector } from "@/components/word-inspector";
+import { $failure, attempt } from "@/stores/failure-store";
 import { $lintReport, checkLinters } from "@/stores/lint-store";
 import { $currentProjectId, loadProjects } from "@/stores/projects-store";
 import { $graphMode, setGraphMode } from "@/stores/settings-store";
@@ -17,7 +18,6 @@ import {
   $chunks,
   $danglingIds,
   $duplicatesAboveThreshold,
-  $failure,
   $report,
   $searchHits,
   $selectedChunkId,
@@ -53,8 +53,8 @@ export const UniversePage = (): JSX.Element => {
   const lintReport = useStore($lintReport);
 
   useEffect(() => {
-    void loadProjects();
-    void checkLinters();
+    attempt(loadProjects());
+    attempt(checkLinters());
   }, []);
 
   useEffect(() => {
@@ -237,7 +237,7 @@ export const UniversePage = (): JSX.Element => {
         <section className="overflow-y-auto border-r border-line p-3">
           <NewChunkForm
             onAdd={(text) => {
-              void addChunk(projectId, text);
+              attempt(addChunk(projectId, text));
             }}
           />
           <ChunkList
@@ -273,7 +273,7 @@ export const UniversePage = (): JSX.Element => {
             isDangling={danglingIds.has(selectedChunk.id)}
             lint={lintForSelected}
             onDelete={() => {
-              void deleteChunk(projectId, selectedChunk.id);
+              attempt(deleteChunk(projectId, selectedChunk.id));
             }}
             onOpenNeighbour={(id) => {
               selectChunk(id);

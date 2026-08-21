@@ -8,6 +8,7 @@ import {
   selectProject,
 } from "@/stores/projects-store";
 import { detectSourceFormat } from "@/lib/detect-source-format";
+import { attempt } from "@/stores/failure-store";
 import { ingestSource } from "@/stores/universe-store";
 
 export const ProjectBar = (): JSX.Element => {
@@ -16,13 +17,10 @@ export const ProjectBar = (): JSX.Element => {
   const [name, setName] = useState("");
   const [note, setNote] = useState<string | undefined>(undefined);
 
-  const onFile = async (
-    event: ChangeEvent<HTMLInputElement>,
+  const dissolve = async (
+    file: File,
+    input: HTMLInputElement,
   ): Promise<void> => {
-    const file = event.target.files?.[0];
-    if (!file || !currentId) {
-      return;
-    }
     const count = await ingestSource(
       currentId,
       await file.text(),
@@ -30,7 +28,14 @@ export const ProjectBar = (): JSX.Element => {
     );
     await loadProjects();
     setNote(`${file.name} dissolved into ${count} chunks`);
-    event.target.value = "";
+    input.value = "";
+  };
+
+  const onFile = (event: ChangeEvent<HTMLInputElement>): void => {
+    const file = event.target.files?.[0];
+    if (file && currentId) {
+      attempt(dissolve(file, event.target));
+    }
   };
 
   return (
@@ -56,7 +61,7 @@ export const ProjectBar = (): JSX.Element => {
         onSubmit={(event) => {
           event.preventDefault();
           if (name.trim()) {
-            void createProject(name.trim());
+            attempt(createProject(name.trim()));
             setName("");
           }
         }}

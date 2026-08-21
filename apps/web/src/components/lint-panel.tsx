@@ -1,6 +1,8 @@
 import { useStore } from "@nanostores/react";
 import type { JSX } from "react";
+import { attempt } from "@/stores/failure-store";
 import {
+  $lintCoverage,
   $lintHealth,
   $lintReport,
   $lintRunning,
@@ -16,6 +18,7 @@ export const LintPanel = ({ chunks }: Props): JSX.Element => {
   const health = useStore($lintHealth);
   const report = useStore($lintReport);
   const running = useStore($lintRunning);
+  const coverage = useStore($lintCoverage);
 
   return (
     <div className="flex items-center gap-2">
@@ -23,7 +26,7 @@ export const LintPanel = ({ chunks }: Props): JSX.Element => {
         className="disabled:cursor-not-allowed disabled:opacity-40"
         disabled={running || chunks.length === 0}
         onClick={() => {
-          void runLinters(chunks);
+          attempt(runLinters(chunks));
         }}
         type="button"
       >
@@ -39,8 +42,11 @@ export const LintPanel = ({ chunks }: Props): JSX.Element => {
 
       {report?.available ? (
         <span className="text-xs text-faint">
-          {report.findings.length} findings from {report.tools.join(", ")} — on
-          screen only, never saved
+          {report.findings.length} findings from {report.tools.join(", ")} —
+          {coverage && coverage.checked < coverage.total
+            ? ` first ${coverage.checked} of ${coverage.total} chunks,`
+            : ""}{" "}
+          on screen only, never saved
         </span>
       ) : null}
     </div>
