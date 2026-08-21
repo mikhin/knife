@@ -12,8 +12,8 @@ type Props = {
   value: string;
 };
 
-/** The one control both lists share: what comes first. */
-export const ListOrder = ({
+/** The one labelled dropdown the columns share: order, filter, whatever. */
+export const ListChoice = ({
   label,
   onChange,
   options,

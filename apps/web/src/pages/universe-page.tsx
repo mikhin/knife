@@ -5,7 +5,7 @@ import { ChunkList } from "@/components/chunk-list";
 import { FailureBanner } from "@/components/failure-banner";
 import { FileImport } from "@/components/file-import";
 import { LintPanel } from "@/components/lint-panel";
-import { ListOrder } from "@/components/list-order";
+import { ListChoice } from "@/components/list-choice";
 import { NewChunkForm } from "@/components/new-chunk-form";
 import { ProjectBar } from "@/components/project-bar";
 import { TextSearch } from "@/components/text-search";
@@ -17,11 +17,14 @@ import { attempt } from "@/stores/failure-store";
 import { $lintReport, checkLinters } from "@/stores/lint-store";
 import { $currentProjectId, loadProjects } from "@/stores/projects-store";
 import {
+  $chunkFilter,
   $chunkOrder,
   $wordOrder,
+  setChunkFilter,
   setChunkOrder,
   setWordOrder,
 } from "@/stores/settings-store";
+import { filterChunks } from "@/services/universe/filter-chunks";
 import { filterWords } from "@/services/universe/filter-words";
 import { sortChunks } from "@/services/universe/sort-chunks";
 import { sortWords } from "@/services/universe/sort-words";
@@ -55,6 +58,7 @@ export const UniversePage = (): JSX.Element => {
   const selectedChunkId = useStore($selectedChunkId);
   const wordProfile = useStore($wordProfile);
   const wordFilter = useStore($wordFilter);
+  const chunkFilter = useStore($chunkFilter);
   const chunkOrder = useStore($chunkOrder);
   const wordOrder = useStore($wordOrder);
   const searchHits = useStore($searchHits);
@@ -99,15 +103,26 @@ export const UniversePage = (): JSX.Element => {
     [report, wordFilter, wordOrder],
   );
 
-  const shownChunks = useMemo(
-    () =>
-      sortChunks(listedChunks, chunkOrder, {
-        dangling: danglingIds,
-        duplicates: duplicateIds,
-        water: new Set(waterByChunk.keys()),
-      }),
-    [chunkOrder, danglingIds, duplicateIds, listedChunks, waterByChunk],
-  );
+  const shownChunks = useMemo(() => {
+    const marks = {
+      dangling: danglingIds,
+      duplicates: duplicateIds,
+      water: new Set(waterByChunk.keys()),
+    };
+
+    return sortChunks(
+      filterChunks(listedChunks, chunkFilter, marks),
+      chunkOrder,
+      marks,
+    );
+  }, [
+    chunkFilter,
+    chunkOrder,
+    danglingIds,
+    duplicateIds,
+    listedChunks,
+    waterByChunk,
+  ]);
 
   const selectedChunk = selectedChunkId
     ? chunkById.get(selectedChunkId)
@@ -183,19 +198,34 @@ export const UniversePage = (): JSX.Element => {
             <TextSearch hits={searchHits?.length} />
             <div className="flex min-h-8 flex-wrap items-center justify-between gap-2">
               <RepeatLevel pairs={report?.duplicates.pairs ?? []} />
-              <ListOrder
-                label="First"
-                onChange={(value) => {
-                  setChunkOrder(value as typeof chunkOrder);
-                }}
-                options={[
-                  { label: "Oldest", value: "oldest" },
-                  { label: "Newest", value: "newest" },
-                  { label: "Longest", value: "longest" },
-                  { label: "Flagged", value: "problems" },
-                ]}
-                value={chunkOrder}
-              />
+              <div className="flex flex-wrap items-center gap-3">
+                <ListChoice
+                  label="Show"
+                  onChange={(value) => {
+                    setChunkFilter(value as typeof chunkFilter);
+                  }}
+                  options={[
+                    { label: "All", value: "all" },
+                    { label: "Repeats", value: "duplicates" },
+                    { label: "Water", value: "water" },
+                    { label: "Hanging", value: "dangling" },
+                  ]}
+                  value={chunkFilter}
+                />
+                <ListChoice
+                  label="First"
+                  onChange={(value) => {
+                    setChunkOrder(value as typeof chunkOrder);
+                  }}
+                  options={[
+                    { label: "Oldest", value: "oldest" },
+                    { label: "Newest", value: "newest" },
+                    { label: "Longest", value: "longest" },
+                    { label: "Flagged", value: "problems" },
+                  ]}
+                  value={chunkOrder}
+                />
+              </div>
             </div>
           </div>
         </section>
@@ -214,7 +244,7 @@ export const UniversePage = (): JSX.Element => {
           <div className="flex flex-col gap-2 border-t border-line p-3">
             <WordSearch shown={shownWords.length} />
             <div className="flex min-h-8 items-center">
-              <ListOrder
+              <ListChoice
                 label="First"
                 onChange={(value) => {
                   setWordOrder(value as typeof wordOrder);

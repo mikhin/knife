@@ -198,6 +198,34 @@ test.describe("Вселенная требований, в которой мож
     await expect(inspector).toContainText("stop-word-flood");
   });
 
+  test("Оставляю в списке одну беду за раз", async ({ page }) => {
+    await createProject(page);
+    await bringSheet(page, SHEET);
+
+    const rows = page.getByTestId("chunk-list").getByRole("button");
+    const all = await rows.count();
+
+    // Только вода: водянистый на месте, а просто одинокий ушёл
+    await page.getByLabel("Show").selectOption("water");
+    await expect.poll(async () => rows.count()).toBeLessThan(all);
+    await expect(
+      chunkRow(page, "It should be noted that this is basically"),
+    ).toBeVisible();
+    await expect(
+      chunkRow(page, "Peacocks roam the orangery unsupervised."),
+    ).toBeHidden();
+
+    // Только висящие: теперь наоборот — водянистый заголовок ушёл
+    await page.getByLabel("Show").selectOption("dangling");
+    await expect(
+      chunkRow(page, "Peacocks roam the orangery unsupervised."),
+    ).toBeVisible();
+    await expect(chunkRow(page, /^Night audit$/)).toBeHidden();
+
+    await page.getByLabel("Show").selectOption("all");
+    await expect.poll(async () => rows.count()).toBe(all);
+  });
+
   test("Вижу висящие куски", async ({ page }) => {
     await createProject(page);
     await bringSheet(page, SHEET);

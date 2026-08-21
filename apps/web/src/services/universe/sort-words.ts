@@ -1,4 +1,4 @@
-import type { WordOrder } from "@/types/list-order";
+import type { WordOrder } from "@/types/list-view";
 import type { WordCount } from "@/types/universe";
 
 export const sortWords = (

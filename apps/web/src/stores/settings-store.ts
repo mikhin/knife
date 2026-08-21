@@ -1,5 +1,5 @@
 import { persistentAtom } from "@nanostores/persistent";
-import type { ChunkOrder, WordOrder } from "@/types/list-order";
+import type { ChunkFilter, ChunkOrder, WordOrder } from "@/types/list-view";
 
 const asNumber = {
   decode: Number,
@@ -36,4 +36,13 @@ export const setChunkOrder = (order: ChunkOrder): void => {
 
 export const setWordOrder = (order: WordOrder): void => {
   $wordOrder.set(order);
+};
+
+export const $chunkFilter = persistentAtom<ChunkFilter>(
+  "knife:chunk-filter",
+  "all",
+);
+
+export const setChunkFilter = (filter: ChunkFilter): void => {
+  $chunkFilter.set(filter);
 };

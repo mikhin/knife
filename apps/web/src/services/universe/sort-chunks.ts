@@ -1,5 +1,5 @@
 import type { Chunk } from "@knife/contract";
-import type { ChunkOrder } from "@/types/list-order";
+import type { ChunkOrder } from "@/types/list-view";
 
 type Marks = {
   dangling: ReadonlySet<string>;
