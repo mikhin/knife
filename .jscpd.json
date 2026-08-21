@@ -1,0 +1,14 @@
+{
+  "pattern": "{apps/*/src,packages/*/src,services/*}/**/*.{ts,tsx,mjs}",
+  "ignore": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/generated/**",
+    "**/.stryker-tmp/**",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
+  ],
+  "minLines": 6,
+  "minTokens": 40,
+  "threshold": 10
+}

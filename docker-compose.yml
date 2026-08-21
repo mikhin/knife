@@ -1,0 +1,59 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: knife
+      POSTGRES_PASSWORD: knife
+      POSTGRES_DB: knife
+    ports:
+      - "5433:5432"
+    volumes:
+      - knife-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U knife -d knife"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Vale, textlint and proselint. Their findings pass straight to the screen
+  # and are never written anywhere.
+  linters:
+    build: ./services/linters
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:8081/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      DATABASE_URL: postgres://knife:knife@db:5432/knife
+      LINTERS_URL: http://linters:8081
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "./node_modules/.bin/prisma migrate deploy && node dist/main.js"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
+volumes:
+  knife-db:

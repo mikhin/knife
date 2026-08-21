@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+@theme {
+  --color-canvas: #14161b;
+  --color-panel: #1b1e25;
+  --color-line: #2a2f3a;
+  --color-ink: #dfe3ec;
+  --color-faint: #8b93a5;
+  --color-accent: #5b8def;
+  --color-dup: #e0603a;
+  --color-water: #8f6bd6;
+  --color-hang: #7a7f8c;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-canvas text-sm text-ink antialiased;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    @apply rounded-md border border-line bg-panel px-2 py-1;
+  }
+
+  button {
+    @apply cursor-pointer hover:border-accent;
+  }
+
+  mark {
+    @apply rounded-xs bg-accent/30 text-ink;
+  }
+}

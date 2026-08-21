@@ -1,3 +1,13 @@
 node_modules/
 .idea/
 .DS_Store
+dist/
+.env
+*.log
+test-results/
+playwright-report/
+reports/
+apps/api/src/generated/
+.stryker-tmp/
+.stryker-incremental.json
+*.tsbuildinfo

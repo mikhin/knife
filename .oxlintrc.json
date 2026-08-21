@@ -1,0 +1,351 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "typescript",
+    "unicorn",
+    "oxc",
+    "react",
+    "import",
+    "promise",
+    "vitest",
+    "jsx-a11y",
+    "node"
+  ],
+  "jsPlugins": [
+    "eslint-plugin-sonarjs",
+    "eslint-plugin-perfectionist",
+    "eslint-plugin-boundaries",
+    "eslint-plugin-no-relative-import-paths"
+  ],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "error"
+  },
+  "env": {
+    "builtin": true,
+    "browser": true,
+    "es2024": true
+  },
+  "ignorePatterns": [
+    "dist",
+    "node_modules",
+    "coverage",
+    "reports",
+    ".stryker-tmp",
+    "apps/api/src/generated"
+  ],
+  "settings": {
+    "boundaries/elements": [
+      {
+        "type": "types",
+        "pattern": "apps/*/src/types",
+        "partialMatch": true
+      },
+      {
+        "type": "lib",
+        "pattern": "apps/*/src/lib",
+        "partialMatch": true
+      },
+      {
+        "type": "config",
+        "pattern": "apps/*/src/config",
+        "partialMatch": true
+      },
+      {
+        "type": "api",
+        "pattern": "apps/web/src/api",
+        "partialMatch": true
+      },
+      {
+        "type": "services",
+        "pattern": "apps/web/src/services",
+        "partialMatch": true
+      },
+      {
+        "type": "workers",
+        "pattern": "apps/web/src/workers",
+        "partialMatch": true
+      },
+      {
+        "type": "stores",
+        "pattern": "apps/web/src/stores",
+        "partialMatch": true
+      },
+      {
+        "type": "hooks",
+        "pattern": "apps/web/src/hooks",
+        "partialMatch": true
+      },
+      {
+        "type": "components",
+        "pattern": "apps/web/src/components",
+        "partialMatch": true
+      },
+      {
+        "type": "pages",
+        "pattern": "apps/web/src/pages",
+        "partialMatch": true
+      }
+    ]
+  },
+  "rules": {
+    "typescript/consistent-type-definitions": ["error", "type"],
+    "typescript/no-explicit-any": "error",
+    "typescript/no-non-null-assertion": "error",
+    "typescript/ban-ts-comment": "error",
+    "typescript/no-namespace": "error",
+    "typescript/prefer-as-const": "error",
+    "import/no-default-export": "error",
+    "sonarjs/cognitive-complexity": "error",
+    "sonarjs/no-identical-functions": "error",
+    "sonarjs/no-duplicate-string": "off",
+    "perfectionist/sort-named-imports": [
+      "error",
+      {
+        "type": "natural",
+        "order": "asc"
+      }
+    ],
+    "perfectionist/sort-named-exports": [
+      "error",
+      {
+        "type": "natural",
+        "order": "asc"
+      }
+    ],
+    "perfectionist/sort-object-types": [
+      "error",
+      {
+        "type": "natural",
+        "order": "asc"
+      }
+    ],
+    "perfectionist/sort-union-types": [
+      "error",
+      {
+        "type": "natural",
+        "order": "asc"
+      }
+    ],
+    "perfectionist/sort-objects": [
+      "error",
+      {
+        "type": "natural",
+        "order": "asc"
+      }
+    ],
+    "no-relative-import-paths/no-relative-import-paths": [
+      "error",
+      {
+        "rootDir": "src",
+        "prefix": "@",
+        "allowSameFolder": false
+      }
+    ],
+    "react/react-in-jsx-scope": "off",
+    "typescript/no-extraneous-class": [
+      "error",
+      {
+        "allowWithDecorator": true
+      }
+    ],
+    "no-underscore-dangle": [
+      "error",
+      {
+        "allow": ["_count"]
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["apps/**/*.{ts,tsx}"],
+      "rules": {
+        "boundaries/dependencies": [
+          "error",
+          {
+            "default": "allow",
+            "policies": [
+              {
+                "from": [
+                  {
+                    "element": {
+                      "type": [
+                        "services",
+                        "stores",
+                        "lib",
+                        "types",
+                        "config",
+                        "workers"
+                      ]
+                    }
+                  }
+                ],
+                "disallow": [
+                  {
+                    "to": {
+                      "element": {
+                        "type": ["components", "pages", "hooks"]
+                      }
+                    }
+                  }
+                ],
+                "message": "Business layers stay UI-free: a service, store, worker, lib or type file must not import components, pages or hooks."
+              },
+              {
+                "from": [
+                  {
+                    "element": {
+                      "type": "services"
+                    }
+                  }
+                ],
+                "disallow": [
+                  {
+                    "to": {
+                      "element": {
+                        "type": ["api", "stores"]
+                      }
+                    }
+                  }
+                ],
+                "message": "Everything is computed on the spot: a service takes chunks as arguments and returns findings, it never fetches or reads a store."
+              },
+              {
+                "from": [
+                  {
+                    "element": {
+                      "type": ["lib", "types", "config"]
+                    }
+                  }
+                ],
+                "disallow": [
+                  {
+                    "to": {
+                      "element": {
+                        "type": ["services", "stores", "api"]
+                      }
+                    }
+                  }
+                ],
+                "message": "src/lib, src/types and src/config carry no domain knowledge — universe logic belongs in src/services."
+              },
+              {
+                "from": [
+                  {
+                    "element": {
+                      "type": "workers"
+                    }
+                  }
+                ],
+                "disallow": [
+                  {
+                    "to": {
+                      "element": {
+                        "type": ["stores", "api"]
+                      }
+                    }
+                  }
+                ],
+                "message": "A worker only runs services over the chunks it was handed — it owns no state and talks to no server."
+              },
+              {
+                "from": [
+                  {
+                    "element": {
+                      "type": "components"
+                    }
+                  }
+                ],
+                "disallow": [
+                  {
+                    "to": {
+                      "element": {
+                        "type": "pages"
+                      }
+                    }
+                  }
+                ],
+                "message": "Pages compose components, not the other way round."
+              },
+              {
+                "from": [
+                  {
+                    "element": {
+                      "type": "hooks"
+                    }
+                  }
+                ],
+                "disallow": [
+                  {
+                    "to": {
+                      "element": {
+                        "type": ["components", "pages"]
+                      }
+                    }
+                  }
+                ],
+                "message": "A hook owns state, not markup."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["apps/web/src/**/*.{ts,tsx}"],
+      "rules": {
+        "react/rules-of-hooks": "error",
+        "react/exhaustive-deps": "warn"
+      }
+    },
+    {
+      "files": ["apps/api/src/**/*.ts"],
+      "rules": {}
+    },
+    {
+      "files": ["**/*.spec.{ts,tsx}"],
+      "rules": {
+        "boundaries/dependencies": "off",
+        "sonarjs/no-identical-functions": "off",
+        "vitest/expect-expect": "error",
+        "vitest/no-focused-tests": "error",
+        "vitest/no-disabled-tests": "warn",
+        "vitest/no-identical-title": "error"
+      }
+    },
+    {
+      "files": [
+        "*.config.ts",
+        "*.config.js",
+        "**/vite.config.ts",
+        "**/vitest.config.ts",
+        "**/prisma.config.ts",
+        "**/stryker.conf.json"
+      ],
+      "rules": {
+        "import/no-default-export": "off",
+        "no-relative-import-paths/no-relative-import-paths": "off"
+      }
+    },
+    {
+      "files": [
+        "apps/api/src/main.ts",
+        "apps/web/src/main.tsx",
+        "apps/api/prisma.config.ts"
+      ],
+      "rules": {
+        "import/no-unassigned-import": "off"
+      }
+    },
+    {
+      "files": [
+        "apps/web/src/workers/*.ts",
+        "apps/web/src/stores/universe-store.ts"
+      ],
+      "rules": {
+        "unicorn/require-post-message-target-origin": "off"
+      }
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "ignoreExportsUsedInFile": {
+    "type": true
+  },
+  "workspaces": {
+    "apps/api": {
+      "entry": ["src/main.ts", "src/generated/prisma/client.ts"],
+      "project": "src/**/*.ts"
+    },
+    "apps/web": {
+      "entry": ["src/workers/*.ts"],
+      "project": "src/**/*.{ts,tsx}",
+      "ignoreDependencies": ["tailwindcss"]
+    }
+  },
+  "ignore": ["services/linters/**", "**/.stryker-tmp/**"],
+  "ignoreDependencies": [
+    "eslint-import-resolver-typescript",
+    "eslint-plugin-boundaries",
+    "eslint-plugin-filename-export",
+    "eslint-plugin-no-relative-import-paths",
+    "eslint-plugin-perfectionist",
+    "eslint-plugin-sonarjs"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "printWidth": 80,
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    "dist",
+    "node_modules",
+    "coverage",
+    "reports",
+    ".stryker-tmp"
+  ],
+  "sortTailwindcss": {
+    "stylesheet": "./apps/web/src/index.css"
+  }
+}

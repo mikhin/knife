@@ -1,0 +1,58 @@
+{
+  "name": "knife",
+  "private": true,
+  "version": "0.0.0",
+  "engines": {
+    "node": "24.4.1"
+  },
+  "packageManager": "pnpm@10.30.3",
+  "scripts": {
+    "dev": "pnpm --parallel --filter \"./apps/*\" dev",
+    "build": "pnpm --filter \"./apps/*\" build",
+    "format:check": "oxfmt --check .",
+    "format:fix": "oxfmt --write .",
+    "lint:check": "oxlint -c .oxlintrc.json",
+    "lint:fix": "oxlint --fix -c .oxlintrc.json",
+    "tsc": "tsc -b && pnpm --filter \"./apps/*\" tsc",
+    "test": "pnpm --filter \"./apps/*\" test",
+    "mutate": "pnpm --filter @knife/web mutate",
+    "knip": "knip",
+    "jscpd": "jscpd -c .jscpd.json -r console",
+    "dead": "pnpm knip; pnpm jscpd",
+    "up": "docker compose up -d --build",
+    "db:up": "docker compose up -d db",
+    "linters:up": "docker compose up -d linters",
+    "e2e": "playwright test",
+    "e2e:headed": "playwright test --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^24.13.3",
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-boundaries": "^7.2.0",
+    "eslint-plugin-filename-export": "^2.0.0",
+    "eslint-plugin-no-relative-import-paths": "^1.6.1",
+    "eslint-plugin-perfectionist": "^4.15.1",
+    "eslint-plugin-sonarjs": "^3.0.5",
+    "jscpd": "^4.0.8",
+    "knip": "^5.76.2",
+    "oxfmt": "^0.44.0",
+    "oxlint": "^1.79.0",
+    "typescript": "~5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "esbuild",
+      "prisma",
+      "unrs-resolver",
+      "@swc/core"
+    ],
+    "overrides": {
+      "nanostores": "1.5.1",
+      "electron-to-chromium": "1.5.411",
+      "baseline-browser-mapping": "2.11.16"
+    }
+  }
+}
