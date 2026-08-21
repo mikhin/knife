@@ -221,27 +221,33 @@ test.describe("Вселенная требований, в которой мож
     await expect(page.getByTestId("chunk-inspector")).toContainText("Peacocks");
   });
 
-  test("Кручу пороги под свой текст", async ({ page }) => {
+  test("Выбираю, насколько похожие повторы показывать", async ({ page }) => {
     await createProject(page);
     await bringSheet(page, SHEET);
     await bringSheet(page, HANDBOOK);
 
-    // Сколько пар прошло порог, написано рядом с самим ползунком.
-    const pairsAt = async (): Promise<number> => {
-      const text = (await page.getByText(/of \d+ pairs/).textContent()) ?? "";
-      return Number(/(\d+) of/.exec(text)?.[1] ?? "0");
+    const levels = page.getByTestId("repeat-level");
+    const countOn = async (label: string): Promise<number> => {
+      const text =
+        (await levels
+          .getByRole("button", { name: RegExp(label) })
+          .textContent()) ?? "";
+      return Number(/(\d+)\s*$/.exec(text)?.[1] ?? "0");
     };
 
-    const slider = page.locator('input[type="range"]');
-    await slider.fill((await slider.getAttribute("min")) ?? "0.25");
+    // Каждый уровень заранее говорит, сколько повторов покажет
+    const loose = await countOn("Loosely alike");
+    const strict = await countOn("Almost the same");
+    expect(loose).toBeGreaterThan(strict);
 
-    const loose = await pairsAt();
-    expect(loose).toBeGreaterThan(0);
+    // И выбор уровня меняет то, что помечено в списке
+    await levels.getByRole("button", { name: /Loosely alike/ }).click();
+    const wide = await page.getByTestId("chunk-list").getByText("dup").count();
 
-    await slider.fill("0.99");
+    await levels.getByRole("button", { name: /Almost the same/ }).click();
     await expect
-      .poll(pairsAt, { message: "порог поднят — пар должно стать меньше" })
-      .toBeLessThan(loose);
+      .poll(async () => page.getByTestId("chunk-list").getByText("dup").count())
+      .toBeLessThan(wide);
   });
 
   test("Правки нет — удаляю и завожу заново", async ({ page }) => {
@@ -353,9 +359,11 @@ test.describe("Вселенная требований, в которой мож
     await page.selectOption("select", id);
 
     const started = Date.now();
-    await expect(page.getByText(/of [1-9]\d* pairs/)).toBeVisible({
-      timeout: 30000,
-    });
+    await expect(
+      page
+        .getByTestId("repeat-level")
+        .getByRole("button", { name: /Loosely alike [1-9]\d*/ }),
+    ).toBeVisible({ timeout: 30000 });
     expect(Date.now() - started).toBeLessThan(30000);
     await expect.poll(async () => chunkCount(page)).toBe(4000);
 

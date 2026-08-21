@@ -8,7 +8,7 @@ import { LintPanel } from "@/components/lint-panel";
 import { NewChunkForm } from "@/components/new-chunk-form";
 import { ProjectBar } from "@/components/project-bar";
 import { SearchBox } from "@/components/search-box";
-import { ThresholdSlider } from "@/components/threshold-slider";
+import { RepeatLevel } from "@/components/repeat-level";
 import { WordInspector } from "@/components/word-inspector";
 import { WordList } from "@/components/word-list";
 import { attempt } from "@/stores/failure-store";
@@ -111,11 +111,7 @@ export const UniversePage = (): JSX.Element => {
 
       <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-2">
         <SearchBox hits={searchHits?.length} />
-        <ThresholdSlider
-          floor={report?.duplicates.similarityFloor ?? 0.25}
-          shown={duplicates.length}
-          total={report?.duplicates.pairs.length ?? 0}
-        />
+        <RepeatLevel pairs={report?.duplicates.pairs ?? []} />
         <LintPanel chunks={chunks} />
       </div>
 

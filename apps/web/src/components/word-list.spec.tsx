@@ -56,6 +56,22 @@ describe("WordList", () => {
     expect(screen.getByText("20 rarer words not listed")).toBeDefined();
   });
 
+  it("shows a picked word that sits past the cut", () => {
+    const many = Array.from({ length: 420 }, (_, position) =>
+      word(`word-${position}`, 420 - position),
+    );
+
+    render(
+      <WordList
+        onPick={vi.fn<(stem: string) => void>()}
+        selectedStem="word-410"
+        words={many}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "word-410 10" })).toBeDefined();
+  });
+
   it("keeps quiet when the whole universe fits", () => {
     render(
       <WordList

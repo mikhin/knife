@@ -26,7 +26,11 @@ test.describe("Когда что-то не получилось", () => {
     await page.getByPlaceholder("New project name").fill(name);
     await page.getByRole("button", { name: "Create project" }).click();
 
-    await expect(page.getByText(/of \d+ pairs/)).toContainText("0 of 0 pairs");
+    await expect(
+      page.getByTestId("repeat-level").getByRole("button", {
+        name: /Almost the same 0/,
+      }),
+    ).toBeVisible();
     await expect(page.getByTestId("chunk-list")).toBeEmpty();
   });
 });
