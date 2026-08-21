@@ -34,8 +34,13 @@ const openUniverse = async (page: Page): Promise<string> => {
 
 const bringSheet = async (page: Page, file: string): Promise<void> => {
   await page.locator('input[type="file"]').setInputFiles(file);
-  await expect(page.getByText(/dissolved into \d+ chunks/)).toBeVisible();
-  await expect(page.getByTestId("stats")).toContainText("chunks");
+  await expect(page.getByText(/Added \d+ chunks from/)).toBeVisible();
+};
+
+/** Сколько чанков во вселенной, видно там же, где её выбирают. */
+const chunkCount = async (page: Page): Promise<number> => {
+  const label = await page.locator("select option:checked").textContent();
+  return Number(/\((\d+) chunks\)/.exec(label ?? "")?.[1] ?? "0");
 };
 
 const chunkRow = (page: Page, text: string) =>
@@ -115,10 +120,10 @@ test.describe("Вселенная требований, в которой мож
       name: "big-sheet.md",
     });
 
-    await expect(page.getByText(/dissolved into 4000 chunks/)).toBeVisible({
+    await expect(page.getByText(/Added 4000 chunks from/)).toBeVisible({
       timeout: 60000,
     });
-    await expect(page.getByTestId("stats")).toContainText("4000 chunks");
+    await expect.poll(async () => chunkCount(page)).toBe(4000);
   });
 
   test("Строки таблиц живут наравне с текстом", async ({ page }) => {
@@ -262,10 +267,10 @@ test.describe("Вселенная требований, в которой мож
     await bringSheet(page, SHEET);
     await bringSheet(page, HANDBOOK);
 
-    const stats = page.getByTestId("stats");
+    // Сколько пар прошло порог, написано рядом с самим ползунком.
     const pairsAt = async (): Promise<number> => {
-      const text = (await stats.textContent()) ?? "";
-      return Number(/(\d+) duplicate pairs/.exec(text)?.[1] ?? "0");
+      const text = (await page.getByText(/of \d+ pairs/).textContent()) ?? "";
+      return Number(/(\d+) of/.exec(text)?.[1] ?? "0");
     };
 
     const slider = page.locator('input[type="range"]');
@@ -350,10 +355,15 @@ test.describe("Вселенная требований, в которой мож
     }
 
     // А вердикты считаются на месте — и после перезагрузки считаются заново
-    await expect(page.getByTestId("stats")).toContainText(/counted in \d+ ms/);
+    const wet = chunkRow(page, "It should be noted that this is basically");
+    await expect(wet.locator("xpath=../span").getByText("water")).toBeVisible();
+
     await page.reload();
-    await expect(page.getByTestId("stats")).toContainText(/counted in \d+ ms/);
-    await expect(page.getByTestId("stats")).toContainText("water");
+    await expect(
+      chunkRow(page, "It should be noted that this is basically")
+        .locator("xpath=../span")
+        .getByText("water"),
+    ).toBeVisible();
   });
 
   test("Вселенная растёт годами", async ({ page, request }) => {
@@ -384,12 +394,11 @@ test.describe("Вселенная требований, в которой мож
     await page.selectOption("select", id);
 
     const started = Date.now();
-    await expect(page.getByTestId("stats")).toContainText(
-      /[1-9]\d* duplicate pairs/,
-      { timeout: 30000 },
-    );
+    await expect(page.getByText(/of [1-9]\d* pairs/)).toBeVisible({
+      timeout: 30000,
+    });
     expect(Date.now() - started).toBeLessThan(30000);
-    await expect(page.getByTestId("stats")).toContainText("4000 chunks");
+    await expect.poll(async () => chunkCount(page)).toBe(4000);
 
     // Удаление одного чанка — обычное движение в этом инструменте, и оно не
     // должно стоить дороже, чем открыть проект целиком.
@@ -403,7 +412,7 @@ test.describe("Вселенная требований, в которой мож
 
     const deleting = Date.now();
     await page.getByRole("button", { name: "Delete for good" }).click();
-    await expect(page.getByTestId("stats")).toContainText("3999 chunks");
+    await expect.poll(async () => chunkCount(page)).toBe(3999);
     expect(Date.now() - deleting).toBeLessThan(5000);
   });
 });

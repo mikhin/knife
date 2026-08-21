@@ -16,7 +16,7 @@ test.describe("Когда что-то не получилось", () => {
     await page.getByPlaceholder("new universe").fill(name);
     await page.getByRole("button", { name: "Create" }).click();
 
-    await expect(page.getByTestId("stats")).toContainText("already exists");
+    await expect(page.getByTestId("failure")).toContainText("already exists");
   });
 
   test("Пустой проект не притворяется посчитанным", async ({ page }) => {
@@ -26,8 +26,7 @@ test.describe("Когда что-то не получилось", () => {
     await page.getByPlaceholder("new universe").fill(name);
     await page.getByRole("button", { name: "Create" }).click();
 
-    const stats = page.getByTestId("stats");
-    await expect(stats).not.toContainText("duplicate pairs");
-    await expect(stats).not.toContainText("counted in");
+    await expect(page.getByText(/of \d+ pairs/)).toContainText("0 of 0 pairs");
+    await expect(page.getByTestId("chunk-list")).toBeEmpty();
   });
 });

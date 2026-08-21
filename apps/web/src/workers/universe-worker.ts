@@ -22,14 +22,12 @@ const post = (response: WorkerResponse): void => {
 const analyse = (
   request: Extract<WorkerRequest, { type: "analyse" }>,
 ): void => {
-  const started = performance.now();
   index = buildUniverseIndex(request.chunks);
 
   post({
     report: {
       dangling: findDanglingChunks(index),
       duplicates: findDuplicatePairs(index),
-      elapsedMs: Math.round(performance.now() - started),
       water: detectWater(index),
       wordGraph: buildWordGraph(index),
     },

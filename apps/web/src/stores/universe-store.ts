@@ -13,11 +13,8 @@ import type {
   WorkerResponse,
 } from "@/types/worker";
 
-export type UniverseStage = "analysing" | "empty" | "loading" | "ready";
-
 export const $chunks = atom<Chunk[]>([]);
 export const $report = atom<undefined | UniverseReport>(undefined);
-export const $stage = atom<UniverseStage>("empty");
 export const $selectedChunkId = atom<string | undefined>(undefined);
 export const $wordProfile = atom<undefined | WordProfile>(undefined);
 export const $searchQuery = atom("");
@@ -35,7 +32,6 @@ worker.addEventListener("message", (event: MessageEvent<WorkerResponse>) => {
 
   if (response.type === "analysed") {
     $report.set(response.report);
-    $stage.set("ready");
     return;
   }
 
@@ -61,11 +57,9 @@ const analyse = (chunks: Chunk[]): void => {
 
   if (chunks.length === 0) {
     $report.set(undefined);
-    $stage.set("empty");
     return;
   }
 
-  $stage.set("analysing");
   ask({ chunks, type: "analyse" });
 };
 
@@ -85,18 +79,9 @@ export const openProject = async (projectId: string): Promise<void> => {
     return;
   }
 
-  $stage.set("loading");
-  try {
-    const chunks = await chunksApi.list(projectId);
-    if (mine === opening) {
-      analyse(chunks);
-    }
-  } catch (error) {
-    // The stage is this function's business; saying so on screen is not.
-    if (mine === opening) {
-      $stage.set("empty");
-    }
-    throw error;
+  const chunks = await chunksApi.list(projectId);
+  if (mine === opening) {
+    analyse(chunks);
   }
 };
 

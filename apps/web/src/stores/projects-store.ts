@@ -26,6 +26,23 @@ export const createProject = async (name: string): Promise<Project> => {
   return project;
 };
 
+export const renameProject = async (
+  id: string,
+  name: string,
+): Promise<void> => {
+  await projectsApi.rename(id, name);
+  await loadProjects();
+};
+
+/**
+ * Takes the project's chunks with it, and there is no undo. The screen asks
+ * before calling this.
+ */
+export const deleteProject = async (id: string): Promise<void> => {
+  await projectsApi.remove(id);
+  await loadProjects();
+};
+
 export const selectProject = (id: string): void => {
   $currentProjectId.set(id);
 };

@@ -14,7 +14,6 @@ import type {
 export type UniverseReport = {
   dangling: string[];
   duplicates: DuplicateReport;
-  elapsedMs: number;
   water: WaterVerdict[];
   wordGraph: WordGraph;
 };

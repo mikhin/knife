@@ -2,7 +2,8 @@ import { useStore } from "@nanostores/react";
 import { type JSX, useCallback, useEffect, useMemo } from "react";
 import { ChunkInspector } from "@/components/chunk-inspector";
 import { ChunkList } from "@/components/chunk-list";
-import { UniverseStats } from "@/components/universe-stats";
+import { FailureBanner } from "@/components/failure-banner";
+import { FileImport } from "@/components/file-import";
 import { GraphCanvas } from "@/components/graph-canvas";
 import { LintPanel } from "@/components/lint-panel";
 import { NewChunkForm } from "@/components/new-chunk-form";
@@ -10,7 +11,7 @@ import { ProjectBar } from "@/components/project-bar";
 import { SearchBox } from "@/components/search-box";
 import { ThresholdSlider } from "@/components/threshold-slider";
 import { WordInspector } from "@/components/word-inspector";
-import { $failure, attempt } from "@/stores/failure-store";
+import { attempt } from "@/stores/failure-store";
 import { $lintReport, checkLinters } from "@/stores/lint-store";
 import { $currentProjectId, loadProjects } from "@/stores/projects-store";
 import { $graphMode, setGraphMode } from "@/stores/settings-store";
@@ -22,7 +23,6 @@ import {
   $report,
   $searchHits,
   $selectedChunkId,
-  $stage,
   $waterByChunk,
   $wordProfile,
   addChunk,
@@ -41,8 +41,6 @@ export const UniversePage = (): JSX.Element => {
   const projectId = useStore($currentProjectId);
   const chunks = useStore($chunks);
   const report = useStore($report);
-  const stage = useStore($stage);
-  const failure = useStore($failure);
   const graphMode = useStore($graphMode);
   const duplicates = useStore($duplicatesAboveThreshold);
   const chunkGraph = useStore($chunkGraph);
@@ -206,23 +204,24 @@ export const UniversePage = (): JSX.Element => {
         <LintPanel chunks={chunks} />
       </div>
 
-      <UniverseStats
-        chunkCount={chunks.length}
-        droppedChunks={graphMode === "chunks" ? chunkGraph.droppedNodes : 0}
-        duplicateCount={duplicates.length}
-        failure={failure}
-        report={report}
-        showWordDrop={graphMode === "words"}
-        stage={stage}
-      />
+      <FailureBanner />
 
       <main className="grid min-h-0 flex-1 grid-cols-[minmax(280px,1fr)_minmax(400px,1.6fr)_minmax(0,1fr)]">
         <section className="overflow-y-auto border-r border-line p-3">
-          <NewChunkForm
-            onAdd={(text) => {
-              attempt(addChunk(projectId, text));
-            }}
-          />
+          {projectId ? (
+            <>
+              <NewChunkForm
+                onAdd={(text) => {
+                  attempt(addChunk(projectId, text));
+                }}
+              />
+              <FileImport projectId={projectId} />
+            </>
+          ) : (
+            <p className="mb-3 text-xs text-faint">
+              Create a project above, then write a chunk or add a file.
+            </p>
+          )}
           <ChunkList
             chunks={listedChunks}
             danglingIds={danglingIds}
@@ -243,6 +242,18 @@ export const UniversePage = (): JSX.Element => {
             <em className={`${TAG} text-dup`}>duplicate</em>
             <em className={`${TAG} text-water`}>water</em>
             <em className={`${TAG} text-hang`}>hanging</em>
+            {chunkGraph.droppedNodes > 0 && graphMode === "chunks" ? (
+              <span className="text-faint">
+                {chunkGraph.droppedNodes} quieter chunks not drawn
+              </span>
+            ) : null}
+            {report &&
+            report.wordGraph.droppedNodes > 0 &&
+            graphMode === "words" ? (
+              <span className="text-faint">
+                {report.wordGraph.droppedNodes} rarer words not drawn
+              </span>
+            ) : null}
             <span className="text-faint">
               nothing here is stored — every verdict is recounted on open
             </span>

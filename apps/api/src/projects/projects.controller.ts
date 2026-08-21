@@ -6,6 +6,7 @@ import {
   HttpCode,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
 } from "@nestjs/common";
 import { CreateProjectDto } from "@/projects/create-project.dto";
@@ -29,6 +30,15 @@ export class ProjectsController {
   @Get(":id")
   get(@Param("id", ParseUUIDPipe) id: string): Promise<Project> {
     return this.projects.get(id);
+  }
+
+  /** A project is a folder, so it renames like one. Its chunks do not. */
+  @Patch(":id")
+  rename(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: CreateProjectDto,
+  ): Promise<Project> {
+    return this.projects.rename(id, dto.name);
   }
 
   @Delete(":id")
