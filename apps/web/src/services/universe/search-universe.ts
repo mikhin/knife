@@ -1,5 +1,6 @@
 import { tokenizeText } from "@/services/text/tokenize-text";
 import type { SearchHit, UniverseIndex } from "@/types/universe";
+import type { Token } from "@/types/token";
 
 /**
  * Words the query could mean. A whole word matches by stem, so "shift" still
@@ -40,6 +41,32 @@ const isServiceWord = (word: string): boolean => {
 };
 
 /**
+ * When the query is nothing but service words, they are all there is to go
+ * on. Service words carry no meaning and so are never indexed, but they are
+ * still written in the text, so the letters are looked for there instead:
+ * "for" finds the preposition, and "format" along with it.
+ */
+const holds = (token: Token, fragment: string): boolean =>
+  token.surface.toLowerCase().includes(fragment);
+
+const literalHits = (index: UniverseIndex, words: string[]): SearchHit[] => {
+  const fragments = words.map((word) => word.toLowerCase());
+
+  return index.chunks
+    .filter((chunk) =>
+      fragments.every((fragment) =>
+        chunk.tokens.some((token) => holds(token, fragment)),
+      ),
+    )
+    .map((chunk) => ({
+      chunkId: chunk.id,
+      spans: chunk.tokens
+        .filter((token) => fragments.some((fragment) => holds(token, fragment)))
+        .map((token) => ({ end: token.end, start: token.start })),
+    }));
+};
+
+/**
  * Every word of the query has to be in the chunk; each of them may be there
  * in any of its meanings.
  */
@@ -47,13 +74,10 @@ export const searchUniverse = (
   index: UniverseIndex,
   query: string,
 ): SearchHit[] => {
-  const words = query
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .filter((word) => !isServiceWord(word));
+  const typed = query.trim().split(/\s+/).filter(Boolean);
+  const words = typed.filter((word) => !isServiceWord(word));
   if (words.length === 0) {
-    return [];
+    return typed.length === 0 ? [] : literalHits(index, typed);
   }
 
   const perWord = words.map((word) => meanings(index, word));

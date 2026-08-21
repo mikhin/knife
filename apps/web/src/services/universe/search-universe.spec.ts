@@ -83,9 +83,19 @@ describe("searchUniverse", () => {
     expect(searchUniverse(buildUniverseIndex(universe), "zzz")).toEqual([]);
   });
 
-  it("returns nothing for a query of service words only", () => {
-    expect(searchUniverse(buildUniverseIndex(universe), "the and of")).toEqual(
-      [],
-    );
+  it("looks for a service word letter by letter, since it is all there is", () => {
+    const hits = searchUniverse(buildUniverseIndex(universe), "on");
+
+    // "on" the preposition and "Monday" that carries the same letters
+    expect(hits.map((hit) => hit.chunkId)).toEqual(["other"]);
+    expect(hits[0]?.spans).toHaveLength(2);
+  });
+
+  it("still wants every service word of the query present", () => {
+    expect(searchUniverse(buildUniverseIndex(universe), "the and")).toEqual([]);
+  });
+
+  it("returns nothing for an empty query", () => {
+    expect(searchUniverse(buildUniverseIndex(universe), "   ")).toEqual([]);
   });
 });
