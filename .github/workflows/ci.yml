@@ -34,7 +34,6 @@ jobs:
           node-version-file: ".nvmrc"
           cache: "pnpm"
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @knife/api exec prisma generate
       - run: pnpm tsc
 
   test:
@@ -49,7 +48,6 @@ jobs:
           node-version-file: ".nvmrc"
           cache: "pnpm"
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @knife/api exec prisma generate
       - run: pnpm test
 
   dead-code:
@@ -64,7 +62,6 @@ jobs:
           node-version-file: ".nvmrc"
           cache: "pnpm"
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @knife/api exec prisma generate
       - run: pnpm knip
       - run: pnpm jscpd
 
@@ -112,5 +109,4 @@ jobs:
           node-version-file: ".nvmrc"
           cache: "pnpm"
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @knife/api exec prisma generate
       - run: pnpm build

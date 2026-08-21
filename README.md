@@ -19,9 +19,8 @@ docker compose up -d --build     # db + linters + api + web, интерфейс 
 
 ```sh
 pnpm install
-docker compose up -d db linters
-pnpm --filter @knife/api exec prisma migrate deploy
-pnpm dev                         # api на :3000, web на :5173
+pnpm dev                         # поднимает Postgres, мигрирует, api :3000, web :5173
+pnpm linters:up                  # если нужны Vale, textlint и proselint
 ```
 
 ## Что где

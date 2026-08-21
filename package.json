@@ -7,7 +7,7 @@
   },
   "packageManager": "pnpm@10.30.3",
   "scripts": {
-    "dev": "pnpm --parallel --filter \"./apps/*\" dev",
+    "dev": "pnpm db:up && pnpm db:migrate && pnpm --parallel --filter \"./apps/*\" dev",
     "build": "pnpm --filter \"./apps/*\" build",
     "format:check": "oxfmt --check .",
     "format:fix": "oxfmt --write .",
@@ -18,12 +18,13 @@
     "mutate": "pnpm --filter @knife/web mutate",
     "knip": "knip",
     "jscpd": "jscpd -c .jscpd.json -r console",
-    "dead": "pnpm knip; pnpm jscpd",
+    "dead": "pnpm knip && pnpm jscpd",
     "up": "docker compose up -d --build",
-    "db:up": "docker compose up -d db",
+    "db:up": "docker compose up -d --wait db",
     "linters:up": "docker compose up -d linters",
     "e2e": "playwright test",
-    "e2e:headed": "playwright test --headed"
+    "e2e:headed": "playwright test --headed",
+    "db:migrate": "pnpm --filter @knife/api exec prisma migrate deploy"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

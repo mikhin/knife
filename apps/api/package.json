@@ -3,11 +3,12 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "dev": "nest start --watch",
     "build": "nest build && tsc-alias -p tsconfig.build.json",
+    "dev": "nest start --watch",
+    "postinstall": "prisma generate",
     "start": "node dist/main.js",
-    "tsc": "tsc -b",
-    "test": "vitest --run --reporter=dot"
+    "test": "vitest --run --reporter=dot",
+    "tsc": "tsc -b"
   },
   "dependencies": {
     "@knife/contract": "workspace:*",
