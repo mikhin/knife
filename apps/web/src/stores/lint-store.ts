@@ -17,22 +17,51 @@ export const checkLinters = async (): Promise<void> => {
 };
 
 /**
- * Findings are held here and nowhere else: they die with the tab, the same as
- * every other verdict on this screen.
+ * The whole universe is checked, one batch per request, and the count climbs
+ * as batches come back. Findings are held here and nowhere else: they die
+ * with the tab, the same as every other verdict on this screen.
  */
 export const runLinters = async (chunks: Chunk[]): Promise<void> => {
   $lintRunning.set(true);
-  $lintCoverage.set({
-    checked: Math.min(chunks.length, lintApi.batchSize),
-    total: chunks.length,
-  });
+  $lintCoverage.set({ checked: 0, total: chunks.length });
+  $lintReport.set(undefined);
+
+  const findings: LintReport["findings"] = [];
+  const tools = new Set<string>();
+  let available = false;
+  let reason: string | undefined;
+
   try {
-    const report = await lintApi.run(chunks);
-    $lintReport.set(report);
+    for (let from = 0; from < chunks.length; from += lintApi.batchSize) {
+      // One batch at a time: the point is to stay under the request limit,
+      // not to open a connection per thousand chunks.
+      // oxlint-disable-next-line no-await-in-loop
+      const batch = await lintApi.run(
+        chunks.slice(from, from + lintApi.batchSize),
+      );
+
+      findings.push(...batch.findings);
+      for (const tool of batch.tools) {
+        tools.add(tool);
+      }
+      available ||= batch.available;
+      reason = batch.reason;
+
+      $lintCoverage.set({
+        checked: Math.min(from + lintApi.batchSize, chunks.length),
+        total: chunks.length,
+      });
+      $lintReport.set({ available, findings: [...findings], tools: [...tools] });
+
+      if (!batch.available) {
+        break;
+      }
+    }
+
     $lintHealth.set({
-      available: report.available,
-      tools: report.tools,
-      ...(report.reason === undefined ? {} : { reason: report.reason }),
+      available,
+      tools: [...tools],
+      ...(reason === undefined ? {} : { reason }),
     });
   } finally {
     $lintRunning.set(false);

@@ -119,7 +119,6 @@ export const UniversePage = (): JSX.Element => {
       <ProjectBar />
 
       <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-2">
-        <RepeatLevel pairs={report?.duplicates.pairs ?? []} />
         <LintPanel chunks={chunks} />
       </div>
 
@@ -128,6 +127,7 @@ export const UniversePage = (): JSX.Element => {
       <main className="grid min-h-0 flex-1 grid-cols-[minmax(320px,1.4fr)_minmax(220px,0.6fr)_minmax(0,1fr)]">
         <section className="overflow-y-auto border-r border-line p-3">
           <TextSearch hits={searchHits?.length} />
+          <RepeatLevel pairs={report?.duplicates.pairs ?? []} />
 
           {projectId ? (
             <>

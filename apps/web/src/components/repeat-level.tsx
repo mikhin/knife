@@ -27,7 +27,10 @@ export const RepeatLevel = ({ pairs }: Props): JSX.Element => {
     LEVELS.find((level) => threshold >= level.from) ?? LEVELS.at(-1);
 
   return (
-    <div className="flex items-center gap-2 text-xs" data-testid="repeat-level">
+    <div
+      className="mb-3 flex flex-wrap items-center gap-2 text-xs"
+      data-testid="repeat-level"
+    >
       <span className="text-faint">Repeats</span>
       {LEVELS.map((level) => {
         const count = pairs.filter(

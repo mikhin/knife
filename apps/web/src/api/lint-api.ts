@@ -2,9 +2,9 @@ import { request } from "@/api/request";
 import type { Chunk, LintHealth, LintReport } from "@knife/contract";
 
 /**
- * One batch is what the linters can chew through before the request times
- * out. The number is surfaced rather than applied quietly: a run that checked
- * a fifth of the universe must not read like a clean bill of health.
+ * One request carries at most this many chunks — the limit the API enforces
+ * and about as much as the linters chew through before the request times out.
+ * A whole universe is checked by sending several.
  */
 const BATCH = 500;
 
