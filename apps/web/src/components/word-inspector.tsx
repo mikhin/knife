@@ -20,7 +20,7 @@ export const WordInspector = ({
   profile,
 }: Props): JSX.Element => (
   <aside
-    className="overflow-y-auto border-l border-line p-3"
+    className="overflow-x-hidden overflow-y-auto border-l border-line p-3 break-words"
     data-testid="word-inspector"
   >
     <h2 className="text-xl">{profile.label}</h2>
