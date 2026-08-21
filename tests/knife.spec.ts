@@ -25,8 +25,8 @@ const openUniverse = async (page: Page): Promise<string> => {
   const name = `universe-${process.pid}-${universeCount}`;
 
   await page.goto("/");
-  await page.getByPlaceholder("new universe").fill(name);
-  await page.getByRole("button", { name: "Create" }).click();
+  await page.getByPlaceholder("New project name").fill(name);
+  await page.getByRole("button", { name: "Create project" }).click();
   await expect(page.locator("select")).toContainText(name);
 
   return name;

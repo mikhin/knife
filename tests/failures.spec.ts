@@ -9,12 +9,12 @@ test.describe("Когда что-то не получилось", () => {
     const name = `taken-${process.pid}-${Date.now()}`;
 
     await page.goto("/");
-    await page.getByPlaceholder("new universe").fill(name);
-    await page.getByRole("button", { name: "Create" }).click();
+    await page.getByPlaceholder("New project name").fill(name);
+    await page.getByRole("button", { name: "Create project" }).click();
     await expect(page.locator("select")).toContainText(name);
 
-    await page.getByPlaceholder("new universe").fill(name);
-    await page.getByRole("button", { name: "Create" }).click();
+    await page.getByPlaceholder("New project name").fill(name);
+    await page.getByRole("button", { name: "Create project" }).click();
 
     await expect(page.getByTestId("failure")).toContainText("already exists");
   });
@@ -23,8 +23,8 @@ test.describe("Когда что-то не получилось", () => {
     const name = `empty-${process.pid}-${Date.now()}`;
 
     await page.goto("/");
-    await page.getByPlaceholder("new universe").fill(name);
-    await page.getByRole("button", { name: "Create" }).click();
+    await page.getByPlaceholder("New project name").fill(name);
+    await page.getByRole("button", { name: "Create project" }).click();
 
     await expect(page.getByText(/of \d+ pairs/)).toContainText("0 of 0 pairs");
     await expect(page.getByTestId("chunk-list")).toBeEmpty();
