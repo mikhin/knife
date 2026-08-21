@@ -19,6 +19,9 @@ export const $wordProfile = atom<undefined | WordProfile>(undefined);
 export const $searchQuery = atom("");
 export const $searchHits = atom<SearchHit[] | undefined>(undefined);
 
+/** The word the worker was last asked about; a late answer to any other is dropped. */
+let asked: string | undefined;
+
 const worker = new Worker(
   new URL("@/workers/universe-worker.ts", import.meta.url),
   {
@@ -35,7 +38,9 @@ worker.addEventListener("message", (event: MessageEvent<WorkerResponse>) => {
   }
 
   if (response.type === "word") {
-    $wordProfile.set(response.profile);
+    if (response.profile.stem === asked) {
+      $wordProfile.set(response.profile);
+    }
     return;
   }
 
@@ -50,6 +55,7 @@ const ask = (request: WorkerRequest): void => {
 
 const analyse = (chunks: Chunk[]): void => {
   $chunks.set(chunks);
+  asked = undefined;
   $selectedChunkId.set(undefined);
   $wordProfile.set(undefined);
   $searchHits.set(undefined);
@@ -119,11 +125,20 @@ export const deleteChunk = async (
   analyse($chunks.get().filter((chunk) => chunk.id !== chunkId));
 };
 
+/**
+ * One inspector, one subject. Opening a chunk lets go of the word and the
+ * other way round, so the list that lost the argument stops highlighting a
+ * row for a panel nobody is looking at.
+ */
 export const selectChunk = (chunkId: string | undefined): void => {
+  asked = undefined;
+  $wordProfile.set(undefined);
   $selectedChunkId.set(chunkId);
 };
 
 export const selectWord = (stem: string): void => {
+  asked = stem;
+  $selectedChunkId.set(undefined);
   ask({ stem, type: "word" });
 };
 

@@ -28,6 +28,7 @@ export const ChunkList = ({
     {chunks.slice(0, MAX_ROWS).map((chunk) => (
       <li className="flex min-w-0 items-start gap-2" key={chunk.id}>
         <button
+          aria-current={chunk.id === selectedId}
           className={`min-w-0 flex-1 rounded-md border bg-transparent px-2 py-1 text-left leading-relaxed break-words ${
             chunk.id === selectedId ? "border-accent" : "border-transparent"
           }`}

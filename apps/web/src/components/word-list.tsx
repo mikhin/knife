@@ -46,6 +46,7 @@ export const WordList = ({
         return (
           <li key={word.stem}>
             <button
+              aria-current={isSelected}
               className={`flex w-full items-baseline justify-between gap-2 rounded-md border bg-transparent px-2 py-1 text-left ${
                 isSelected ? "border-accent" : "border-transparent"
               }`}

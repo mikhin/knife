@@ -205,10 +205,7 @@ export const UniversePage = (): JSX.Element => {
 
           <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-3">
             <WordList
-              onPick={(stem) => {
-                selectChunk(undefined);
-                selectWord(stem);
-              }}
+              onPick={selectWord}
               selectedStem={wordProfile?.stem}
               words={shownWords}
             />
