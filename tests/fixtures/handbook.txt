@@ -3,3 +3,5 @@
 The night auditor is the one who closes the shift report before midnight.
 
 Housekeeping restocks the minibar on arrival days.
+
+Overtime on a night shift is approved by the property manager the next day.

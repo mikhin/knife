@@ -5,6 +5,7 @@ import { ChunkList } from "@/components/chunk-list";
 import { FailureBanner } from "@/components/failure-banner";
 import { FileImport } from "@/components/file-import";
 import { LintPanel } from "@/components/lint-panel";
+import { ListOrder } from "@/components/list-order";
 import { NewChunkForm } from "@/components/new-chunk-form";
 import { ProjectBar } from "@/components/project-bar";
 import { TextSearch } from "@/components/text-search";
@@ -15,7 +16,15 @@ import { WordList } from "@/components/word-list";
 import { attempt } from "@/stores/failure-store";
 import { $lintReport, checkLinters } from "@/stores/lint-store";
 import { $currentProjectId, loadProjects } from "@/stores/projects-store";
+import {
+  $chunkOrder,
+  $wordOrder,
+  setChunkOrder,
+  setWordOrder,
+} from "@/stores/settings-store";
 import { filterWords } from "@/services/universe/filter-words";
+import { sortChunks } from "@/services/universe/sort-chunks";
+import { sortWords } from "@/services/universe/sort-words";
 import {
   $chunks,
   $danglingIds,
@@ -33,6 +42,9 @@ import {
   selectWord,
 } from "@/stores/universe-store";
 
+const COLUMN_TITLE =
+  "border-b border-line px-3 py-1 text-xs tracking-wider text-faint uppercase";
+
 export const UniversePage = (): JSX.Element => {
   const projectId = useStore($currentProjectId);
   const chunks = useStore($chunks);
@@ -43,6 +55,8 @@ export const UniversePage = (): JSX.Element => {
   const selectedChunkId = useStore($selectedChunkId);
   const wordProfile = useStore($wordProfile);
   const wordFilter = useStore($wordFilter);
+  const chunkOrder = useStore($chunkOrder);
+  const wordOrder = useStore($wordOrder);
   const searchHits = useStore($searchHits);
   const lintReport = useStore($lintReport);
 
@@ -81,8 +95,18 @@ export const UniversePage = (): JSX.Element => {
   );
 
   const shownWords = useMemo(
-    () => filterWords(report?.words ?? [], wordFilter),
-    [report, wordFilter],
+    () => sortWords(filterWords(report?.words ?? [], wordFilter), wordOrder),
+    [report, wordFilter, wordOrder],
+  );
+
+  const shownChunks = useMemo(
+    () =>
+      sortChunks(listedChunks, chunkOrder, {
+        dangling: danglingIds,
+        duplicates: duplicateIds,
+        water: new Set(waterByChunk.keys()),
+      }),
+    [chunkOrder, danglingIds, duplicateIds, listedChunks, waterByChunk],
   );
 
   const selectedChunk = selectedChunkId
@@ -116,54 +140,97 @@ export const UniversePage = (): JSX.Element => {
 
   return (
     <div className="flex h-screen flex-col">
-      <ProjectBar />
-
-      <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-2">
+      <ProjectBar>
         <LintPanel chunks={chunks} />
-      </div>
+      </ProjectBar>
 
       <FailureBanner />
 
       <main className="grid min-h-0 flex-1 grid-cols-[minmax(320px,1.4fr)_minmax(220px,0.6fr)_minmax(0,1fr)]">
-        <section className="overflow-y-auto border-r border-line p-3">
-          <TextSearch hits={searchHits?.length} />
-          <RepeatLevel pairs={report?.duplicates.pairs ?? []} />
+        <section className="flex min-h-0 flex-col border-r border-line">
+          <h2 className={COLUMN_TITLE}>Chunks</h2>
 
-          {projectId ? (
-            <>
-              <NewChunkForm
-                onAdd={(text) => {
-                  attempt(addText(projectId, text));
+          <div className="flex flex-col gap-2 border-b border-line p-3">
+            {projectId ? (
+              <>
+                <NewChunkForm
+                  onAdd={(text) => {
+                    attempt(addText(projectId, text));
+                  }}
+                />
+                <FileImport projectId={projectId} />
+              </>
+            ) : (
+              <p className="text-xs text-faint">
+                Create a project above, then write a chunk or add a file.
+              </p>
+            )}
+          </div>
+
+          <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-3">
+            <ChunkList
+              chunks={shownChunks}
+              danglingIds={danglingIds}
+              duplicateIds={duplicateIds}
+              onOpen={selectChunk}
+              selectedId={selectedChunkId}
+              spansByChunk={spansByChunk}
+              waterIds={new Set(waterByChunk.keys())}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2 border-t border-line p-3">
+            <TextSearch hits={searchHits?.length} />
+            <div className="flex min-h-8 flex-wrap items-center justify-between gap-2">
+              <RepeatLevel pairs={report?.duplicates.pairs ?? []} />
+              <ListOrder
+                label="First"
+                onChange={(value) => {
+                  setChunkOrder(value as typeof chunkOrder);
                 }}
+                options={[
+                  { label: "Oldest", value: "oldest" },
+                  { label: "Newest", value: "newest" },
+                  { label: "Longest", value: "longest" },
+                  { label: "Flagged", value: "problems" },
+                ]}
+                value={chunkOrder}
               />
-              <FileImport projectId={projectId} />
-            </>
-          ) : (
-            <p className="mb-3 text-xs text-faint">
-              Create a project above, then write a chunk or add a file.
-            </p>
-          )}
-          <ChunkList
-            chunks={listedChunks}
-            danglingIds={danglingIds}
-            duplicateIds={duplicateIds}
-            onOpen={selectChunk}
-            selectedId={selectedChunkId}
-            spansByChunk={spansByChunk}
-            waterIds={new Set(waterByChunk.keys())}
-          />
+            </div>
+          </div>
         </section>
 
-        <section className="overflow-y-auto border-r border-line p-3">
-          <WordSearch shown={shownWords.length} />
-          <WordList
-            onPick={(stem) => {
-              selectChunk(undefined);
-              selectWord(stem);
-            }}
-            selectedStem={wordProfile?.stem}
-            words={shownWords}
-          />
+        <section className="flex min-h-0 flex-col border-r border-line">
+          <h2 className={COLUMN_TITLE}>Words</h2>
+
+          <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-3">
+            <WordList
+              onPick={(stem) => {
+                selectChunk(undefined);
+                selectWord(stem);
+              }}
+              selectedStem={wordProfile?.stem}
+              words={shownWords}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2 border-t border-line p-3">
+            <WordSearch shown={shownWords.length} />
+            <div className="flex min-h-8 items-center">
+              <ListOrder
+                label="First"
+                onChange={(value) => {
+                  setWordOrder(value as typeof wordOrder);
+                }}
+                options={[
+                  { label: "Most chunks", value: "common" },
+                  { label: "Fewest chunks", value: "rare" },
+                  { label: "A–Z", value: "alphabetical" },
+                ]}
+                value={wordOrder}
+              />
+            </div>
+          </div>
         </section>
 
         {selectedChunk ? (

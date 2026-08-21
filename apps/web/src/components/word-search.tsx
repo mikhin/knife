@@ -11,7 +11,7 @@ export const WordSearch = ({ shown }: Props): JSX.Element => {
   const fragment = useStore($wordFilter);
 
   return (
-    <div className="mb-2 flex items-center gap-2">
+    <div className="flex items-center gap-2">
       <input
         className="w-full min-w-0"
         onChange={(event) => {

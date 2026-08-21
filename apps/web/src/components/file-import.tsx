@@ -36,7 +36,7 @@ export const FileImport = ({ projectId }: Props): JSX.Element => {
   };
 
   return (
-    <div className="mb-3 flex flex-col gap-2">
+    <div className="flex flex-col gap-2">
       <label className="block">
         <input
           accept=".md,.markdown,.mdown,.mkd,.txt,.text"

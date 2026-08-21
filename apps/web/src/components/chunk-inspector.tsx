@@ -48,7 +48,7 @@ export const ChunkInspector = ({
       </button>
     </div>
 
-    <p className="mt-3 text-[15px] leading-relaxed">
+    <p className="mt-3 text-[15px] leading-relaxed break-words">
       <HighlightedText spans={spans} text={chunk.text} />
     </p>
 

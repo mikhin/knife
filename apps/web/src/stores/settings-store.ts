@@ -1,4 +1,5 @@
 import { persistentAtom } from "@nanostores/persistent";
+import type { ChunkOrder, WordOrder } from "@/types/list-order";
 
 const asNumber = {
   decode: Number,
@@ -17,4 +18,22 @@ export const $similarityThreshold = persistentAtom<number>(
 
 export const setSimilarityThreshold = (value: number): void => {
   $similarityThreshold.set(value);
+};
+
+export const $chunkOrder = persistentAtom<ChunkOrder>(
+  "knife:chunk-order",
+  "oldest",
+);
+
+export const $wordOrder = persistentAtom<WordOrder>(
+  "knife:word-order",
+  "common",
+);
+
+export const setChunkOrder = (order: ChunkOrder): void => {
+  $chunkOrder.set(order);
+};
+
+export const setWordOrder = (order: WordOrder): void => {
+  $wordOrder.set(order);
 };

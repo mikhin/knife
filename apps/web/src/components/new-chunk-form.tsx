@@ -24,7 +24,7 @@ export const NewChunkForm = ({ onAdd }: Props): JSX.Element => {
 
   return (
     <form
-      className="mb-3 flex flex-col gap-2"
+      className="flex flex-col gap-2"
       onSubmit={(event) => {
         event.preventDefault();
         if (text.trim()) {

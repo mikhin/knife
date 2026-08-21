@@ -1,5 +1,5 @@
 import { useStore } from "@nanostores/react";
-import { type JSX, useState } from "react";
+import { type JSX, type ReactNode, useState } from "react";
 import { ProjectActions } from "@/components/project-actions";
 import { attempt } from "@/stores/failure-store";
 import {
@@ -10,7 +10,12 @@ import {
 } from "@/stores/projects-store";
 import { $chunks } from "@/stores/universe-store";
 
-export const ProjectBar = (): JSX.Element => {
+type Props = {
+  /** Anything that acts on the open project, set apart by a divider. */
+  children?: ReactNode;
+};
+
+export const ProjectBar = ({ children }: Props): JSX.Element => {
   const projects = useStore($projects);
   const currentId = useStore($currentProjectId);
   const chunks = useStore($chunks);
@@ -23,6 +28,7 @@ export const ProjectBar = (): JSX.Element => {
       <label className="flex items-center gap-2">
         <span className="text-faint">Project</span>
         <select
+          data-testid="project-picker"
           disabled={projects.length === 0}
           onChange={(event) => {
             selectProject(event.target.value);
@@ -42,6 +48,13 @@ export const ProjectBar = (): JSX.Element => {
 
       {current ? (
         <ProjectActions chunkCount={chunks.length} project={current} />
+      ) : null}
+
+      {children ? (
+        <>
+          <span aria-hidden="true" className="h-4 w-px bg-line" />
+          {children}
+        </>
       ) : null}
 
       <form

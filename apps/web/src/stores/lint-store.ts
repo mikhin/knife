@@ -51,7 +51,11 @@ export const runLinters = async (chunks: Chunk[]): Promise<void> => {
         checked: Math.min(from + lintApi.batchSize, chunks.length),
         total: chunks.length,
       });
-      $lintReport.set({ available, findings: [...findings], tools: [...tools] });
+      $lintReport.set({
+        available,
+        findings: [...findings],
+        tools: [...tools],
+      });
 
       if (!batch.available) {
         break;

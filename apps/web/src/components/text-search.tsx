@@ -14,7 +14,7 @@ export const TextSearch = ({ hits }: Props): JSX.Element => {
   const query = useStore($searchQuery);
 
   return (
-    <div className="mb-3 flex items-center gap-2">
+    <div className="flex items-center gap-2">
       <input
         className="flex-1"
         onChange={(event) => {

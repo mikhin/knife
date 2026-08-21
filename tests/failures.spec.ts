@@ -11,7 +11,7 @@ test.describe("Когда что-то не получилось", () => {
     await page.goto("/");
     await page.getByPlaceholder("New project name").fill(name);
     await page.getByRole("button", { name: "Create project" }).click();
-    await expect(page.locator("select")).toContainText(name);
+    await expect(page.getByTestId("project-picker")).toContainText(name);
 
     await page.getByPlaceholder("New project name").fill(name);
     await page.getByRole("button", { name: "Create project" }).click();

@@ -26,9 +26,9 @@ export const ChunkList = ({
 }: Props): JSX.Element => (
   <ul className="flex flex-col gap-1" data-testid="chunk-list">
     {chunks.slice(0, MAX_ROWS).map((chunk) => (
-      <li className="flex items-start gap-2" key={chunk.id}>
+      <li className="flex min-w-0 items-start gap-2" key={chunk.id}>
         <button
-          className={`flex-1 rounded-md border bg-transparent px-2 py-1 text-left leading-relaxed ${
+          className={`min-w-0 flex-1 rounded-md border bg-transparent px-2 py-1 text-left leading-relaxed break-words ${
             chunk.id === selectedId ? "border-accent" : "border-transparent"
           }`}
           onClick={() => {

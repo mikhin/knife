@@ -28,7 +28,7 @@ export const RepeatLevel = ({ pairs }: Props): JSX.Element => {
 
   return (
     <div
-      className="mb-3 flex flex-wrap items-center gap-2 text-xs"
+      className="flex flex-wrap items-center gap-2 text-xs"
       data-testid="repeat-level"
     >
       <span className="text-faint">Repeats</span>

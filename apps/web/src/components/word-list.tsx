@@ -55,7 +55,7 @@ export const WordList = ({
               ref={isSelected ? selectedRef : null}
               type="button"
             >
-              <span>{word.label}</span>
+              <span className="truncate">{word.label}</span>
               <span className="text-xs text-faint">{word.chunkCount}</span>
             </button>
           </li>

@@ -8,7 +8,7 @@ import { expect, test } from "@playwright/test";
 const createProject = async (page: Page, name: string): Promise<void> => {
   await page.getByPlaceholder("New project name").fill(name);
   await page.getByRole("button", { name: "Create project" }).click();
-  await expect(page.locator("select")).toContainText(name);
+  await expect(page.getByTestId("project-picker")).toContainText(name);
 };
 
 test.describe("Проекты заводятся, переименовываются и удаляются", () => {
@@ -18,8 +18,8 @@ test.describe("Проекты заводятся, переименовывают
     await page.goto("/");
     await createProject(page, name);
 
-    await expect(page.locator("select")).toHaveValue(/.+/);
-    await expect(page.locator("select")).toContainText(name);
+    await expect(page.getByTestId("project-picker")).toHaveValue(/.+/);
+    await expect(page.getByTestId("project-picker")).toContainText(name);
   });
 
   test("Проект можно переименовать, чанки остаются на месте", async ({
@@ -41,7 +41,7 @@ test.describe("Проекты заводятся, переименовывают
     await page.getByLabel("New name for this project").fill(after);
     await page.getByRole("button", { name: "Save" }).click();
 
-    await expect(page.locator("select")).toContainText(after);
+    await expect(page.getByTestId("project-picker")).toContainText(after);
     await expect(page.getByTestId("chunk-list")).toContainText("night auditor");
   });
 
@@ -58,7 +58,7 @@ test.describe("Проекты заводятся, переименовывают
     await page.getByRole("button", { name: "Save" }).click();
 
     await expect(page.getByTestId("failure")).toContainText("already exists");
-    await expect(page.locator("select")).toContainText(mine);
+    await expect(page.getByTestId("project-picker")).toContainText(mine);
   });
 
   test("Удаление спрашивает и говорит, что унесёт с собой", async ({
@@ -79,11 +79,11 @@ test.describe("Проекты заводятся, переименовывают
 
     // Передумать можно, и тогда ничего не происходит
     await page.getByRole("button", { name: "Keep it" }).click();
-    await expect(page.locator("select")).toContainText(name);
+    await expect(page.getByTestId("project-picker")).toContainText(name);
 
     await page.getByRole("button", { name: "Delete" }).click();
     await page.getByRole("button", { name: "Yes, delete" }).click();
 
-    await expect(page.locator("select")).not.toContainText(name);
+    await expect(page.getByTestId("project-picker")).not.toContainText(name);
   });
 });

@@ -28,7 +28,7 @@ const createProject = async (page: Page): Promise<string> => {
   await page.goto("/");
   await page.getByPlaceholder("New project name").fill(name);
   await page.getByRole("button", { name: "Create project" }).click();
-  await expect(page.locator("select")).toContainText(name);
+  await expect(page.getByTestId("project-picker")).toContainText(name);
 
   return name;
 };
@@ -303,12 +303,13 @@ test.describe("Вселенная требований, в которой мож
 
     // И выбор уровня меняет то, что помечено в списке
     await levels.getByRole("button", { name: /Loosely alike/ }).click();
-    const wide = await page.getByTestId("chunk-list").getByText("dup").count();
+    const marked = async (): Promise<number> =>
+      page.getByTestId("chunk-list").getByText("dup").count();
+    await expect.poll(marked).toBeGreaterThan(0);
+    const wide = await marked();
 
     await levels.getByRole("button", { name: /Almost the same/ }).click();
-    await expect
-      .poll(async () => page.getByTestId("chunk-list").getByText("dup").count())
-      .toBeLessThan(wide);
+    await expect.poll(marked).toBeLessThan(wide);
   });
 
   test("Правки нет — удаляю и завожу заново", async ({ page }) => {
@@ -419,7 +420,7 @@ test.describe("Вселенная требований, в которой мож
     await Promise.all(batches);
 
     await page.goto("/");
-    await page.selectOption("select", id);
+    await page.getByTestId("project-picker").selectOption(id);
 
     const started = Date.now();
     await expect(
