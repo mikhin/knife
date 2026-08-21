@@ -1,3 +1,4 @@
+import { stemWord } from "@/services/text/stem-word";
 import type {
   DuplicatePair,
   DuplicateReport,
@@ -21,6 +22,42 @@ const COMMON_TERM_SHARE = 0.02;
 const COMMON_TERM_FLOOR = 50;
 const MAX_PAIRS = 20000;
 const SHARED_WORDS_SHOWN = 8;
+
+/**
+ * Two requirements that share every word but one negation are the pair most
+ * dangerous to mistake for a duplicate: deleting either one silently flips a
+ * rule. Similarity alone puts them at 0.85, so the difference is stated.
+ */
+const NEGATION_STEMS = new Set(
+  [
+    "not",
+    "no",
+    "nor",
+    "never",
+    "neither",
+    "none",
+    "without",
+    "cannot",
+    "dont",
+    "doesnt",
+    "didnt",
+    "isnt",
+    "arent",
+    "wasnt",
+    "werent",
+    "wont",
+    "wouldnt",
+    "couldnt",
+    "shouldnt",
+    "cant",
+    "havent",
+    "hasnt",
+    "hadnt",
+  ].map(stemWord),
+);
+
+const denies = (chunk: IndexedChunk): boolean =>
+  chunk.stems.some((stem) => NEGATION_STEMS.has(stem));
 
 const cosine = (first: IndexedChunk, second: IndexedChunk): number => {
   const [small, large] =
@@ -107,6 +144,7 @@ export const findDuplicatePairs = (index: UniverseIndex): DuplicateReport => {
 
       pairs.push({
         firstId: chunk.id,
+        polarityDiffers: denies(chunk) !== denies(candidate),
         secondId: candidate.id,
         sharedWords: sharedWords(chunk, candidate, index.surfaceForms),
         similarity,

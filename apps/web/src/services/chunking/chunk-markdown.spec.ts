@@ -101,6 +101,22 @@ describe("chunkMarkdown", () => {
     expect(chunks).toEqual(["The rule stands."]);
   });
 
+  it("keeps the text after a fence nobody closed", () => {
+    const chunks = chunkMarkdown(
+      [
+        "A rule stands.",
+        "",
+        "```ts",
+        "const a = 1;",
+        "",
+        "Another rule stands.",
+      ].join("\n"),
+    );
+
+    expect(chunks).toContain("A rule stands.");
+    expect(chunks).toContain("Another rule stands.");
+  });
+
   it("throws away front matter", () => {
     const chunks = chunkMarkdown(
       ["---", "title: Rules", "---", "", "The rule stands."].join("\n"),

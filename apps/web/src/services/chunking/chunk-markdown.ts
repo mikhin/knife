@@ -72,6 +72,10 @@ const separateCode = (lines: string[]): CodeSplit => {
     }
   }
 
+  // A fence nobody closed is a typo, not a licence to swallow the rest of the
+  // file: what follows it is read as prose.
+  prose.push(...buffer);
+
   return { code, prose };
 };
 

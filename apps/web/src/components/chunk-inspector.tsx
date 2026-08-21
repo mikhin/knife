@@ -98,11 +98,20 @@ export const ChunkInspector = ({
                 <span className="shrink-0 text-dup">
                   {Math.round(pair.similarity * 100)}%
                 </span>
+                {pair.polarityDiffers ? (
+                  <span className="shrink-0 text-water">denies</span>
+                ) : null}
                 <span>{other?.text ?? "gone"}</span>
               </button>
               <span className="text-xs text-faint">
                 shared: {pair.sharedWords.join(", ")}
               </span>
+              {pair.polarityDiffers ? (
+                <span className="text-xs text-water">
+                  one of the two denies what the other says — read before
+                  deleting
+                </span>
+              ) : null}
               {other ? (
                 <span className="text-xs text-faint">
                   arrived {formatDate(other.createdAt)}

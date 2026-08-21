@@ -27,6 +27,8 @@ export type UniverseIndex = {
 
 export type DuplicatePair = {
   firstId: string;
+  /** One of the two denies what the other asserts — never a safe deletion. */
+  polarityDiffers: boolean;
   secondId: string;
   /** Words present in both, strongest contribution first. */
   sharedWords: string[];

@@ -122,6 +122,66 @@ describe("findDuplicatePairs", () => {
     expect(similarities).toEqual([...similarities].toSorted((a, b) => b - a));
   });
 
+  it("does not call two limits the same requirement", () => {
+    const index = buildUniverseIndex([
+      ...background(),
+      chunk("short", "Data retention is 30 days.", LAST_YEAR),
+      chunk("long", "Data retention is 90 days.", TODAY),
+    ]);
+
+    const [pair] = findDuplicatePairs(index).pairs;
+
+    expect(pair?.similarity ?? 0).toBeLessThan(0.95);
+  });
+
+  it("does not call a rule and its negation the same requirement", () => {
+    const index = buildUniverseIndex([
+      ...background(),
+      chunk("yes", "The manager approves the overtime request.", LAST_YEAR),
+      chunk("no", "The manager does not approve the overtime request.", TODAY),
+    ]);
+
+    const [pair] = findDuplicatePairs(index).pairs;
+
+    expect(pair?.similarity ?? 0).toBeLessThan(0.95);
+  });
+
+  it("does not call a rule and its contracted negation the same", () => {
+    const index = buildUniverseIndex([
+      ...background(),
+      chunk("yes", "The manager approves the overtime request.", LAST_YEAR),
+      chunk("no", "The manager doesn't approve the overtime request.", TODAY),
+    ]);
+
+    const [pair] = findDuplicatePairs(index).pairs;
+
+    expect(pair?.similarity ?? 0).toBeLessThan(0.95);
+  });
+
+  it("marks the pair where one denies what the other asserts", () => {
+    const index = buildUniverseIndex([
+      ...background(),
+      chunk("yes", "The manager approves the overtime request.", LAST_YEAR),
+      chunk("no", "The manager does not approve the overtime request.", TODAY),
+    ]);
+
+    const [pair] = findDuplicatePairs(index).pairs;
+
+    expect(pair?.polarityDiffers).toBe(true);
+  });
+
+  it("leaves an ordinary duplicate unmarked", () => {
+    const index = buildUniverseIndex([
+      ...background(),
+      chunk("a", "The night auditor closes the shift report.", LAST_YEAR),
+      chunk("b", "A shift report is closed by the night auditor.", TODAY),
+    ]);
+
+    const [pair] = findDuplicatePairs(index).pairs;
+
+    expect(pair?.polarityDiffers).toBe(false);
+  });
+
   it("keeps unrelated chunks apart", () => {
     const index = buildUniverseIndex(background());
 

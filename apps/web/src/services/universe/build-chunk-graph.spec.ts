@@ -16,6 +16,7 @@ const pair = (
   similarity: number,
 ): DuplicatePair => ({
   firstId,
+  polarityDiffers: false,
   secondId,
   sharedWords: ["shift"],
   similarity,
