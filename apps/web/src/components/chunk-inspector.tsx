@@ -52,10 +52,6 @@ export const ChunkInspector = ({
       <HighlightedText spans={spans} text={chunk.text} />
     </p>
 
-    <p className="mt-2 text-xs text-faint">
-      A chunk is never edited. Delete it and write a new one.
-    </p>
-
     {isDangling ? (
       <section>
         <h3 className={HEADING}>Hanging</h3>

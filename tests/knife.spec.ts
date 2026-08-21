@@ -298,9 +298,11 @@ test.describe("Вселенная требований, в которой мож
 
     const doomed = chunkRow(page, "A shift starts at eight.");
     await doomed.click();
-    await expect(page.getByTestId("chunk-inspector")).toContainText(
-      "A chunk is never edited",
-    );
+
+    // Править нечем: в открытом чанке нет ни одного поля ввода
+    const inspector = page.getByTestId("chunk-inspector");
+    await expect(inspector.getByRole("textbox")).toHaveCount(0);
+
     await page.getByRole("button", { name: "Delete for good" }).click();
 
     // Старый чанк исчезает насовсем
