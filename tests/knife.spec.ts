@@ -35,7 +35,10 @@ const createProject = async (page: Page): Promise<string> => {
 
 const bringSheet = async (page: Page, file: string): Promise<void> => {
   await page.locator('input[type="file"]').setInputFiles(file);
-  await expect(page.getByText(/Added \d+ chunks from/)).toBeVisible();
+  // Именно про этот файл: сообщение о предыдущем ещё висит на экране
+  await expect(
+    page.getByText(RegExp(`Added \\d+ chunks from ${path.basename(file)}`)),
+  ).toBeVisible();
 };
 
 /** Интерфейс чанки не считает, поэтому спрашиваем у самой вселенной. */
@@ -282,6 +285,27 @@ test.describe("Вселенная требований, в которой мож
     await expect(page.getByTestId("chunk-inspector")).toContainText("Peacocks");
   });
 
+  test("Выбрано всегда одно: или слово, или чанк", async ({ page }) => {
+    await createProject(page);
+    await bringSheet(page, SHEET);
+
+    const chosenWord = page
+      .getByTestId("word-list")
+      .locator('[aria-current="true"]');
+    const chosenChunk = page
+      .getByTestId("chunk-list")
+      .locator('[aria-current="true"]');
+
+    await wordRow(page, /^auditor \d+$/).click();
+    await expect(chosenWord).toHaveCount(1);
+    await expect(chosenChunk).toHaveCount(0);
+
+    // Открываю чанк — и список слов отпускает своё
+    await chunkRow(page, "A shift starts at eight.").click();
+    await expect(chosenChunk).toHaveCount(1);
+    await expect(chosenWord).toHaveCount(0);
+  });
+
   test("Выбираю, насколько похожие повторы показывать", async ({ page }) => {
     await createProject(page);
     await bringSheet(page, SHEET);
@@ -297,6 +321,9 @@ test.describe("Вселенная требований, в которой мож
     };
 
     // Каждый уровень заранее говорит, сколько повторов покажет
+    await expect
+      .poll(async () => (await countOn("Loosely alike")) > 0)
+      .toBe(true);
     const loose = await countOn("Loosely alike");
     const strict = await countOn("Almost the same");
     expect(loose).toBeGreaterThan(strict);
