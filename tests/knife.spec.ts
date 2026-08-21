@@ -392,5 +392,20 @@ test.describe("Вселенная требований, в которой мож
     );
     expect(Date.now() - started).toBeLessThan(30000);
     await expect(page.getByTestId("stats")).toContainText("4000 chunks");
+
+    // Удаление одного чанка — обычное движение в этом инструменте, и оно не
+    // должно стоить дороже, чем открыть проект целиком.
+    await page.getByPlaceholder(/Search a word/).fill("midnight");
+    await chunkRow(
+      page,
+      "The night auditor closes the shift report before midnight.",
+    )
+      .first()
+      .click();
+
+    const deleting = Date.now();
+    await page.getByRole("button", { name: "Delete for good" }).click();
+    await expect(page.getByTestId("stats")).toContainText("3999 chunks");
+    expect(Date.now() - deleting).toBeLessThan(5000);
   });
 });
