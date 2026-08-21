@@ -6,8 +6,16 @@ const LIST_ITEM = /^\s*(?:[-*+]|\d+[.)])\s+(.*)$/;
 const BLOCKQUOTE = /^\s*>\s?(.*)$/;
 const FENCE = /^\s*(```|~~~)/;
 const THEMATIC_BREAK = /^\s{0,3}([-*_])\s*(?:\1\s*){2,}$/;
-const TABLE_ROW = /^\s*\|.*\|?\s*$/;
-const TABLE_DELIMITER = /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/;
+/**
+ * A table is recognised by its delimiter row, not by a leading pipe: GFM lets
+ * the outer pipes go, and requiring them turned a whole table into one chunk.
+ * A pipe alone means nothing — a shell command in prose has one too.
+ */
+const TABLE_DELIMITER = /^[\s|:-]*\|[\s|:-]*$/;
+const CARRIES_CELLS = /\|/;
+
+const isTableDelimiter = (line: string): boolean =>
+  TABLE_DELIMITER.test(line) && /-{2,}/.test(line);
 
 /**
  * A table row becomes ordinary text, so a row and a paragraph saying the same
@@ -82,8 +90,7 @@ const separateCode = (lines: string[]): CodeSplit => {
 const unwrapMarker = (line: string): string =>
   BLOCKQUOTE.exec(line)?.[1] ?? LIST_ITEM.exec(line)?.[1] ?? line.trim();
 
-const startsOwnChunk = (line: string): boolean =>
-  LIST_ITEM.test(line) || TABLE_ROW.test(line);
+const startsOwnChunk = (line: string): boolean => LIST_ITEM.test(line);
 
 /**
  * A markdown sheet becomes a heap of chunks. The file itself ends here: what
@@ -108,35 +115,46 @@ export const chunkMarkdown = (markdown: string): string[] => {
     }
   };
 
-  for (const line of prose) {
+  let insideTable = false;
+
+  prose.forEach((line, position) => {
     if (line.trim() === "" || THEMATIC_BREAK.test(line)) {
+      insideTable = false;
       flush();
-      continue;
+      return;
     }
 
     const heading = HEADING.exec(line);
     if (heading) {
+      insideTable = false;
       flush();
       chunks.push(...splitIntoSentences(stripInlineMarkup(heading[1] ?? "")));
-      continue;
+      return;
     }
 
-    if (TABLE_DELIMITER.test(line) && TABLE_ROW.test(line)) {
+    if (isTableDelimiter(line)) {
+      insideTable = true;
       flush();
-      continue;
+      return;
     }
+
+    const opensTable = isTableDelimiter(prose[position + 1] ?? "");
+    if (CARRIES_CELLS.test(line) && (insideTable || opensTable)) {
+      flush();
+      chunks.push(...splitIntoSentences(tableRowToText(line)));
+      return;
+    }
+
+    insideTable = false;
 
     if (startsOwnChunk(line)) {
       flush();
-      const text = TABLE_ROW.test(line)
-        ? tableRowToText(line)
-        : stripInlineMarkup(unwrapMarker(line));
-      chunks.push(...splitIntoSentences(text));
-      continue;
+      chunks.push(...splitIntoSentences(stripInlineMarkup(unwrapMarker(line))));
+      return;
     }
 
     paragraph.push(unwrapMarker(line));
-  }
+  });
 
   flush();
 

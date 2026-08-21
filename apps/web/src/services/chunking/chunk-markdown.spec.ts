@@ -50,6 +50,27 @@ describe("chunkMarkdown", () => {
     ]);
   });
 
+  it("cuts a table that has no leading pipe", () => {
+    const chunks = chunkMarkdown(
+      [
+        "Role | Duty",
+        "--- | ---",
+        "Night auditor | Closes the shift report",
+      ].join("\n"),
+    );
+
+    expect(chunks).toEqual([
+      "Role — Duty",
+      "Night auditor — Closes the shift report",
+    ]);
+  });
+
+  it("leaves a sentence that merely contains a pipe alone", () => {
+    const chunks = chunkMarkdown("Run pnpm lint | tee log.txt to keep it.");
+
+    expect(chunks).toEqual(["Run pnpm lint | tee log.txt to keep it."]);
+  });
+
   it("turns headings and list items into chunks of their own", () => {
     const chunks = chunkMarkdown(
       [

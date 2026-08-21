@@ -8,6 +8,10 @@ Breaks are unpaid; overtime is approved by the property manager.
 | ------------- | --------------------------------------- |
 | Night auditor | Closes the shift report before midnight |
 
+| Position    | Rule                                 |
+| ----------- | ------------------------------------ |
+| Housekeeper | Restocks the minibar on arrival days |
+
 A shift starts at eight. All shifts are approved by the manager.
 
 It should be noted that this is basically what it is about.

@@ -7,7 +7,7 @@ import {
   type SimulationLinkDatum,
   type SimulationNodeDatum,
 } from "d3-force";
-import { type JSX, useEffect, useRef } from "react";
+import { type JSX, useEffect, useMemo, useRef } from "react";
 import type { CanvasLink, CanvasNode } from "@/types/canvas-graph";
 
 const TONE_COLORS: Record<CanvasNode["tone"], string> = {
@@ -20,6 +20,9 @@ const TONE_COLORS: Record<CanvasNode["tone"], string> = {
 
 const LABEL_ZOOM = 1.4;
 const MAX_LABELS = 120;
+
+/** How many node positions are published for anything outside to read. */
+const PUBLISHED_POSITIONS = 300;
 
 type Placed = CanvasNode & SimulationNodeDatum;
 type Wired = SimulationLinkDatum<Placed> & { strength: number };
@@ -109,6 +112,25 @@ const nearest = (
 };
 
 /**
+ * Where the nodes came to rest, in the coordinates of the page. Canvas has no
+ * elements to point at, so anything outside — a test, a screen reader one day
+ * — has nothing to work with unless the positions are written down.
+ */
+const publishPositions = (
+  canvas: HTMLCanvasElement,
+  placed: Placed[],
+  view: View,
+): void => {
+  const positions = placed.slice(0, PUBLISHED_POSITIONS).map((node) => ({
+    id: node.id,
+    x: Math.round(view.x + (node.x ?? 0) * view.scale),
+    y: Math.round(view.y + (node.y ?? 0) * view.scale),
+  }));
+
+  canvas.dataset["nodes"] = JSON.stringify(positions);
+};
+
+/**
  * Canvas rather than SVG, and a simulation that is stopped rather than looped
  * forever: a universe of thousands of nodes has to open, not crawl.
  */
@@ -117,6 +139,27 @@ export const GraphCanvas = ({ links, nodes, onPick }: Props): JSX.Element => {
   const viewRef = useRef<View>({ scale: 1, x: 0, y: 0 });
   const placedRef = useRef<Placed[]>([]);
   const wiredRef = useRef<Wired[]>([]);
+
+  /**
+   * Only a change of shape is worth re-running the simulation for. Recolouring
+   * a node — which is all selecting a chunk does — used to throw the layout
+   * away and start it over.
+   */
+  const shape = useMemo(
+    () =>
+      JSON.stringify([
+        nodes.map((node) => [node.id, node.radius]),
+        links.map((link) => [link.source, link.target, link.strength]),
+      ]),
+    [links, nodes],
+  );
+
+  const redraw = (): void => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      draw(canvas, placedRef.current, wiredRef.current, viewRef.current);
+    }
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -134,6 +177,8 @@ export const GraphCanvas = ({ links, nodes, onPick }: Props): JSX.Element => {
         x: box.width / 2,
         y: box.height / 2,
       };
+      // Changing the size clears the bitmap, so what was on it has to go back.
+      redraw();
     };
 
     resize();
@@ -179,12 +224,29 @@ export const GraphCanvas = ({ links, nodes, onPick }: Props): JSX.Element => {
       .alphaDecay(0.05)
       .on("tick", () => {
         draw(canvas, placed, wired, viewRef.current);
+      })
+      .on("end", () => {
+        publishPositions(canvas, placed, viewRef.current);
       });
 
     return () => {
       simulation.stop();
     };
-  }, [links, nodes]);
+    // Positions survive a recolour: only `shape` may restart the layout.
+    // oxlint-disable-next-line react/exhaustive-deps
+  }, [shape]);
+
+  /** Recolouring without touching the layout. */
+  useEffect(() => {
+    const tones = new Map(nodes.map((node) => [node.id, node.tone]));
+    for (const node of placedRef.current) {
+      const tone = tones.get(node.id);
+      if (tone) {
+        node.tone = tone;
+      }
+    }
+    redraw();
+  }, [nodes]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -192,17 +254,13 @@ export const GraphCanvas = ({ links, nodes, onPick }: Props): JSX.Element => {
       return undefined;
     }
 
-    const toWorld = (event: MouseEvent | WheelEvent): [number, number] => {
+    const toWorld = (event: MouseEvent): [number, number] => {
       const box = canvas.getBoundingClientRect();
       const view = viewRef.current;
       return [
         (event.clientX - box.left - view.x) / view.scale,
         (event.clientY - box.top - view.y) / view.scale,
       ];
-    };
-
-    const redraw = (): void => {
-      draw(canvas, placedRef.current, wiredRef.current, viewRef.current);
     };
 
     let dragging = false;
@@ -221,6 +279,7 @@ export const GraphCanvas = ({ links, nodes, onPick }: Props): JSX.Element => {
         y: pointY - (pointY - view.y) * factor,
       };
       redraw();
+      publishPositions(canvas, placedRef.current, viewRef.current);
     };
 
     const onDown = (): void => {
@@ -229,6 +288,12 @@ export const GraphCanvas = ({ links, nodes, onPick }: Props): JSX.Element => {
     };
 
     const onMove = (event: MouseEvent): void => {
+      // The button can be released outside the window, and then the drag is
+      // over whether or not we ever saw the mouseup.
+      if (event.buttons === 0) {
+        dragging = false;
+        return;
+      }
       if (!dragging) {
         return;
       }
@@ -242,8 +307,18 @@ export const GraphCanvas = ({ links, nodes, onPick }: Props): JSX.Element => {
       redraw();
     };
 
-    const onUp = (event: MouseEvent): void => {
+    const onUp = (): void => {
+      if (dragging && moved) {
+        publishPositions(canvas, placedRef.current, viewRef.current);
+      }
       dragging = false;
+    };
+
+    /**
+     * Selection listens on the canvas, not the window: releasing the mouse
+     * anywhere in the app used to pick whatever node sat under that point.
+     */
+    const onClick = (event: MouseEvent): void => {
       if (moved) {
         return;
       }
@@ -256,12 +331,14 @@ export const GraphCanvas = ({ links, nodes, onPick }: Props): JSX.Element => {
 
     canvas.addEventListener("wheel", onWheel, { passive: false });
     canvas.addEventListener("mousedown", onDown);
+    canvas.addEventListener("click", onClick);
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
 
     return () => {
       canvas.removeEventListener("wheel", onWheel);
       canvas.removeEventListener("mousedown", onDown);
+      canvas.removeEventListener("click", onClick);
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup", onUp);
     };

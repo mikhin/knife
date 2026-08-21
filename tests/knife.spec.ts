@@ -43,53 +43,45 @@ const chunkRow = (page: Page, text: string) =>
     .getByTestId("chunk-list")
     .getByRole("button", { exact: false, name: text });
 
-const RING_STEP = 8;
-const LAST_RING = 160;
+type NodePosition = { id: string; x: number; y: number };
 
-const ring = (radius: number): Array<{ dx: number; dy: number }> => [
-  { dx: radius, dy: 0 },
-  { dx: -radius, dy: 0 },
-  { dx: 0, dy: radius },
-  { dx: 0, dy: -radius },
-  { dx: radius, dy: radius },
-  { dx: -radius, dy: -radius },
-];
-
-const probes = (): Array<{ dx: number; dy: number }> =>
-  Array.from({ length: LAST_RING / RING_STEP + 1 }, (_, step) =>
-    ring(step * RING_STEP),
-  ).flat();
-
-/** Узлы кладёт симуляция, поэтому попадаем по сетке точек, а не по догадке. */
-const clickAnyGraphNode = async (page: Page): Promise<void> => {
+/**
+ * Клик по координатам узла, которые граф публикует, когда симуляция улеглась.
+ * Раньше здесь был перебор сетки из 126 слепых кликов — он попадал по узлу
+ * через оконный слушатель, то есть проходил бы и на сломанном графе.
+ */
+const clickAnyGraphNode = async (page: Page): Promise<string> => {
   const canvas = page.getByTestId("graph").locator("canvas");
   await expect(canvas).toBeVisible();
-  await page.waitForTimeout(3000);
+
+  await expect
+    .poll(async () => (await canvas.getAttribute("data-nodes")) !== null, {
+      message: "граф так и не разложил узлы",
+      timeout: 20000,
+    })
+    .toBe(true);
+
+  const positions = JSON.parse(
+    (await canvas.getAttribute("data-nodes")) ?? "[]",
+  ) as NodePosition[];
 
   const box = await canvas.boundingBox();
-  if (!box) {
-    throw new Error("graph is not on screen");
+  const target = positions.find(
+    (node) =>
+      box !== null &&
+      node.x > 0 &&
+      node.y > 0 &&
+      node.x < box.width &&
+      node.y < box.height,
+  );
+
+  if (!box || !target) {
+    throw new Error("ни один узел не оказался в видимой части графа");
   }
 
-  const inspector = page
-    .getByTestId("chunk-inspector")
-    .or(page.getByTestId("word-inspector"));
+  await page.mouse.click(box.x + target.x, box.y + target.y);
 
-  for (const { dx, dy } of probes()) {
-    // Клики обязаны идти по очереди: каждый следующий нужен только пока
-    // предыдущий ни во что не попал.
-    // oxlint-disable-next-line no-await-in-loop
-    await page.mouse.click(
-      box.x + box.width / 2 + dx,
-      box.y + box.height / 2 + dy,
-    );
-    // oxlint-disable-next-line no-await-in-loop
-    if (await inspector.isVisible()) {
-      return;
-    }
-  }
-
-  throw new Error("no node answered a click");
+  return target.id;
 };
 
 test.describe("Вселенная требований, в которой можно ориентироваться", () => {
@@ -133,9 +125,12 @@ test.describe("Вселенная требований, в которой мож
     await openUniverse(page);
     await bringSheet(page, SHEET);
 
-    // Строка таблицы стала обычным чанком
+    // Строка таблицы стала обычным чанком — и с внешними трубами, и без них
     const row = chunkRow(page, "Night auditor — Closes the shift report");
     await expect(row).toBeVisible();
+    await expect(
+      chunkRow(page, "Housekeeper — Restocks the minibar"),
+    ).toBeVisible();
 
     // И повтор между строкой таблицы и абзацем показан как дубль
     await row.click();
@@ -273,10 +268,13 @@ test.describe("Вселенная требований, в которой мож
       return Number(/(\d+) duplicate pairs/.exec(text)?.[1] ?? "0");
     };
 
+    const slider = page.locator('input[type="range"]');
+    await slider.fill((await slider.getAttribute("min")) ?? "0.25");
+
     const loose = await pairsAt();
     expect(loose).toBeGreaterThan(0);
 
-    await page.locator('input[type="range"]').fill("0.95");
+    await slider.fill("0.99");
     await expect
       .poll(pairsAt, { message: "порог поднят — пар должно стать меньше" })
       .toBeLessThan(loose);
