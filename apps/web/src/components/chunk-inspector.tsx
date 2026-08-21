@@ -44,7 +44,7 @@ export const ChunkInspector = ({
         onClick={onDelete}
         type="button"
       >
-        Delete for good
+        Delete
       </button>
     </div>
 

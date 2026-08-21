@@ -323,7 +323,7 @@ test.describe("Вселенная требований, в которой мож
     const inspector = page.getByTestId("chunk-inspector");
     await expect(inspector.getByRole("textbox")).toHaveCount(0);
 
-    await page.getByRole("button", { name: "Delete for good" }).click();
+    await inspector.getByRole("button", { name: "Delete" }).click();
 
     // Старый чанк исчезает насовсем
     await expect(doomed).toBeHidden();
@@ -442,7 +442,10 @@ test.describe("Вселенная требований, в которой мож
       .click();
 
     const deleting = Date.now();
-    await page.getByRole("button", { name: "Delete for good" }).click();
+    await page
+      .getByTestId("chunk-inspector")
+      .getByRole("button", { name: "Delete" })
+      .click();
     await expect.poll(async () => chunkCount(page)).toBe(3999);
     expect(Date.now() - deleting).toBeLessThan(5000);
   });
