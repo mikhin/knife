@@ -26,6 +26,7 @@ import {
   $waterByChunk,
   $wordProfile,
   addChunk,
+  deleteChunk,
   openProject,
   selectChunk,
   selectWord,
@@ -262,6 +263,9 @@ export const UniversePage = (): JSX.Element => {
             duplicates={selectedDuplicates}
             isDangling={danglingIds.has(selectedChunk.id)}
             lint={lintForSelected}
+            onDelete={() => {
+              attempt(deleteChunk(projectId, selectedChunk.id));
+            }}
             onOpenNeighbour={(id) => {
               selectChunk(id);
             }}

@@ -112,6 +112,21 @@ export const addChunk = async (
   analyse([...$chunks.get(), created]);
 };
 
+/**
+ * Gone for good: there is no undo, and no way to edit one back into place.
+ *
+ * The universe is not fetched again for this. Deleting one chunk out of tens
+ * of thousands is the ordinary move here, and re-downloading everything to
+ * remove one line made the cheapest action the most expensive one.
+ */
+export const deleteChunk = async (
+  projectId: string,
+  chunkId: string,
+): Promise<void> => {
+  await chunksApi.remove(projectId, chunkId);
+  analyse($chunks.get().filter((chunk) => chunk.id !== chunkId));
+};
+
 export const selectChunk = (chunkId: string | undefined): void => {
   $selectedChunkId.set(chunkId);
 };

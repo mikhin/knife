@@ -285,20 +285,25 @@ test.describe("Вселенная требований, в которой мож
       .toBeLessThan(loose);
   });
 
-  test("Правки нет — пишу новый чанк рядом", async ({ page }) => {
+  test("Правки нет — удаляю и завожу заново", async ({ page }) => {
     await openUniverse(page);
     await bringSheet(page, SHEET);
 
-    await chunkRow(page, "A shift starts at eight.").click();
+    const doomed = chunkRow(page, "A shift starts at eight.");
+    await doomed.click();
     await expect(page.getByTestId("chunk-inspector")).toContainText(
       "A chunk is never edited",
     );
+    await page.getByRole("button", { name: "Delete for good" }).click();
+
+    // Старый чанк исчезает насовсем
+    await expect(doomed).toBeHidden();
 
     // Новый становится обычным чанком, наравне с остальными
     await page
       .getByPlaceholder("Write a new chunk")
       .fill("Every shift starts at eight sharp.");
-    await page.getByRole("button", { exact: true, name: "Add" }).click();
+    await page.getByRole("button", { name: "Add" }).click();
 
     const fresh = chunkRow(page, "Every shift starts at eight sharp.");
     await expect(fresh).toBeVisible();
@@ -307,9 +312,7 @@ test.describe("Вселенная требований, в которой мож
     await expect(fresh).toBeVisible();
   });
 
-  test("Правки нет: API не принимает ни изменение, ни удаление чанка", async ({
-    request,
-  }) => {
+  test("Правки нет: API не принимает изменение чанка", async ({ request }) => {
     const project = await request.post("/api/projects", {
       data: { name: `no-edit-${process.pid}-${Date.now()}` },
     });
@@ -320,14 +323,15 @@ test.describe("Вселенная требований, в которой мож
     });
     const chunk = (await created.json()) as { id: string };
 
-    const route = `/api/projects/${id}/chunks/${chunk.id}`;
-    const patched = await request.patch(route, { data: { text: "rewritten" } });
-    const replaced = await request.put(route, { data: { text: "rewritten" } });
-    const deleted = await request.delete(route);
+    const patched = await request.patch(`/api/chunks/${chunk.id}`, {
+      data: { text: "rewritten" },
+    });
+    const replaced = await request.put(`/api/chunks/${chunk.id}`, {
+      data: { text: "rewritten" },
+    });
 
     expect(patched.status()).toBe(404);
     expect(replaced.status()).toBe(404);
-    expect(deleted.status()).toBe(404);
   });
 
   test("Ничего, кроме текста, не хранится", async ({ page, request }) => {
@@ -395,5 +399,20 @@ test.describe("Вселенная требований, в которой мож
     });
     expect(Date.now() - started).toBeLessThan(30000);
     await expect.poll(async () => chunkCount(page)).toBe(4000);
+
+    // Удаление одного чанка — обычное движение в этом инструменте, и оно не
+    // должно стоить дороже, чем открыть проект целиком.
+    await page.getByPlaceholder(/Search a word/).fill("midnight");
+    await chunkRow(
+      page,
+      "The night auditor closes the shift report before midnight.",
+    )
+      .first()
+      .click();
+
+    const deleting = Date.now();
+    await page.getByRole("button", { name: "Delete for good" }).click();
+    await expect.poll(async () => chunkCount(page)).toBe(3999);
+    expect(Date.now() - deleting).toBeLessThan(5000);
   });
 });

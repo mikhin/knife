@@ -9,6 +9,7 @@ type Props = {
   duplicates: Array<{ other: Chunk | undefined; pair: DuplicatePair }>;
   isDangling: boolean;
   lint: LintFinding[];
+  onDelete: () => void;
   onOpenNeighbour: (id: string) => void;
   spans: Array<{ end: number; start: number }>;
   water: undefined | WaterVerdict;
@@ -25,6 +26,7 @@ export const ChunkInspector = ({
   duplicates,
   isDangling,
   lint,
+  onDelete,
   onOpenNeighbour,
   spans,
   water,
@@ -33,9 +35,18 @@ export const ChunkInspector = ({
     className="overflow-y-auto border-l border-line p-3"
     data-testid="chunk-inspector"
   >
-    <span className="text-xs text-faint">
-      arrived {formatDate(chunk.createdAt)}
-    </span>
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-xs text-faint">
+        arrived {formatDate(chunk.createdAt)}
+      </span>
+      <button
+        className="text-dup hover:border-dup"
+        onClick={onDelete}
+        type="button"
+      >
+        Delete for good
+      </button>
+    </div>
 
     <p className="mt-3 text-[15px] leading-relaxed">
       <HighlightedText spans={spans} text={chunk.text} />

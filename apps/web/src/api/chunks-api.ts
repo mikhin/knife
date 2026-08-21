@@ -56,4 +56,7 @@ export const chunksApi = {
 
   list: (projectId: string): Promise<Chunk[]> =>
     request(`/api/projects/${projectId}/chunks`),
+
+  remove: (projectId: string, id: string): Promise<void> =>
+    request(`/api/projects/${projectId}/chunks/${id}`, { method: "DELETE" }),
 } as const;
