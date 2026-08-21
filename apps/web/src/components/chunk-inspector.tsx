@@ -16,7 +16,9 @@ type Props = {
 };
 
 const HEADING = "mt-5 mb-2 text-xs tracking-wider text-faint uppercase";
-const CARD = "flex flex-col gap-0.5";
+const CARD = "flex flex-col gap-1 rounded-md border border-line p-2";
+const PLAIN_BUTTON =
+  "w-full border-transparent bg-transparent p-0 text-left hover:border-transparent hover:text-accent";
 
 const formatDate = (iso: string): string =>
   new Date(iso).toISOString().slice(0, 10);
@@ -77,11 +79,17 @@ export const ChunkInspector = ({
     {duplicates.length > 0 ? (
       <section>
         <h3 className={HEADING}>Duplicates</h3>
+        {duplicates.some(({ pair }) => pair.polarityDiffers) ? (
+          <p className="mb-2 text-xs text-water">
+            “denies” — one of the two denies what the other says; read before
+            deleting
+          </p>
+        ) : null}
         <ul className="flex flex-col gap-2">
           {duplicates.map(({ other, pair }) => (
             <li className={CARD} key={`${pair.firstId}-${pair.secondId}`}>
               <button
-                className="flex gap-2 border-line bg-transparent text-left leading-relaxed"
+                className={`flex gap-2 leading-relaxed ${PLAIN_BUTTON}`}
                 onClick={() => {
                   onOpenNeighbour(
                     pair.firstId === chunk.id ? pair.secondId : pair.firstId,
@@ -95,22 +103,12 @@ export const ChunkInspector = ({
                 {pair.polarityDiffers ? (
                   <span className="shrink-0 text-water">denies</span>
                 ) : null}
-                <span>{other?.text ?? "gone"}</span>
+                <span className="min-w-0">{other?.text ?? "gone"}</span>
               </button>
               <span className="text-xs text-faint">
                 shared: {pair.sharedWords.join(", ")}
+                {other ? ` · ${formatDate(other.createdAt)}` : ""}
               </span>
-              {pair.polarityDiffers ? (
-                <span className="text-xs text-water">
-                  one of the two denies what the other says — read before
-                  deleting
-                </span>
-              ) : null}
-              {other ? (
-                <span className="text-xs text-faint">
-                  {formatDate(other.createdAt)}
-                </span>
-              ) : null}
             </li>
           ))}
         </ul>
