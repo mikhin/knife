@@ -93,6 +93,7 @@ export type ChunkLink = {
 };
 
 export type ChunkGraph = {
+  droppedNodes: number;
   links: ChunkLink[];
   nodes: ChunkNode[];
 };

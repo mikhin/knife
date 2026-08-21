@@ -66,6 +66,7 @@ export const buildChunkGraph = (
   const drawn = new Set(nodes.map((node) => node.id));
 
   return {
+    droppedNodes: Math.max(0, chunks.length - nodes.length),
     links: links.filter(
       (link) => drawn.has(link.source) && drawn.has(link.target),
     ),

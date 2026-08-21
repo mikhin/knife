@@ -62,6 +62,12 @@ const VOCABULARY = [
 const nextSeed = (seed: number): number =>
   (seed * 1103515245 + 12345) % 2147483648;
 
+/** Один чанк, который ни с чем не делит ни слова: висящие должны его найти. */
+const LONELY = "Sundials rust quietly beneath unpruned wisteria.";
+
+/** И один явно водянистый — чтобы правилам воды было что здесь находить. */
+const WATERY = "It should be noted that this is what it is about.";
+
 const generateUniverse = (size: number): Chunk[] => {
   const chunks: Chunk[] = [];
   let seed = 42;
@@ -82,7 +88,9 @@ const generateUniverse = (size: number): Chunk[] => {
     const text =
       position % 50 === 0 && previous
         ? previous
-        : `The ${words.join(" ")} is approved by the manager.`;
+        : position % 100 === 7
+          ? WATERY
+          : `The ${words.join(" ")} of week ${position % 400} is approved by the manager.`;
     previous = text;
 
     chunks.push({
@@ -94,6 +102,13 @@ const generateUniverse = (size: number): Chunk[] => {
       text,
     });
   }
+
+  chunks.push({
+    createdAt: new Date(Date.UTC(2020, 0, 1)).toISOString(),
+    id: "lonely",
+    projectId: "universe",
+    text: LONELY,
+  });
 
   return chunks;
 };
@@ -110,10 +125,18 @@ describe("a universe of tens of thousands of chunks", () => {
     const graph = buildWordGraph(index);
     const elapsed = performance.now() - started;
 
-    expect(index.size).toBe(UNIVERSE_SIZE);
+    expect(index.size).toBe(UNIVERSE_SIZE + 1);
     expect(duplicates.pairs.length).toBeGreaterThan(0);
-    expect(water.length).toBeGreaterThan(0);
-    expect(dangling).toEqual([]);
+
+    // Ни одна проверка не должна ни молчать на всей вселенной, ни утонуть в
+    // ней: доля воды без границ прошла бы и на 0%, и на 95%.
+    const wateryIds = new Set(water.map((verdict) => verdict.chunkId));
+    expect(wateryIds.has("chunk-7")).toBe(true);
+    expect(water.length / index.size).toBeLessThan(0.5);
+
+    // Висящий здесь ровно один, и он подсажен намеренно.
+    expect(dangling).toEqual(["lonely"]);
+
     expect(graph.nodes.length).toBeGreaterThan(0);
     expect(elapsed).toBeLessThan(BUDGET_MS);
   });

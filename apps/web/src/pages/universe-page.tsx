@@ -2,6 +2,7 @@ import { useStore } from "@nanostores/react";
 import { type JSX, useCallback, useEffect, useMemo } from "react";
 import { ChunkInspector } from "@/components/chunk-inspector";
 import { ChunkList } from "@/components/chunk-list";
+import { UniverseStats } from "@/components/universe-stats";
 import { GraphCanvas } from "@/components/graph-canvas";
 import { LintPanel } from "@/components/lint-panel";
 import { NewChunkForm } from "@/components/new-chunk-form";
@@ -205,33 +206,15 @@ export const UniversePage = (): JSX.Element => {
         <LintPanel chunks={chunks} />
       </div>
 
-      <div
-        className="flex flex-wrap items-center gap-4 border-b border-line px-4 py-2 text-xs"
-        data-testid="stats"
-      >
-        {failure ? <span className="text-dup">{failure}</span> : null}
-        {stage === "analysing" ? <span>counting on the spot...</span> : null}
-        {stage === "loading" ? <span>loading the universe...</span> : null}
-        {report ? (
-          <>
-            <span>{chunks.length} chunks</span>
-            <span>{duplicates.length} duplicate pairs</span>
-            <span>{report.water.length} water</span>
-            <span>{report.dangling.length} hanging</span>
-            <span className="text-faint">counted in {report.elapsedMs} ms</span>
-            {report.duplicates.truncatedPairs > 0 ? (
-              <span className="text-faint">
-                {report.duplicates.truncatedPairs} weaker pairs not drawn
-              </span>
-            ) : null}
-            {report.wordGraph.droppedNodes > 0 ? (
-              <span className="text-faint">
-                {report.wordGraph.droppedNodes} rarer words not drawn
-              </span>
-            ) : null}
-          </>
-        ) : null}
-      </div>
+      <UniverseStats
+        chunkCount={chunks.length}
+        droppedChunks={graphMode === "chunks" ? chunkGraph.droppedNodes : 0}
+        duplicateCount={duplicates.length}
+        failure={failure}
+        report={report}
+        showWordDrop={graphMode === "words"}
+        stage={stage}
+      />
 
       <main className="grid min-h-0 flex-1 grid-cols-[minmax(280px,1fr)_minmax(400px,1.6fr)_minmax(0,1fr)]">
         <section className="overflow-y-auto border-r border-line p-3">

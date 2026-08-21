@@ -92,6 +92,23 @@ describe("buildChunkGraph", () => {
     expect(graph.nodes.length).toBeLessThan(crowd.length);
   });
 
+  it("says how many chunks it left off the canvas", () => {
+    const crowd = Array.from({ length: 1300 }, (_, position) =>
+      chunk(`filler-${position}`, `Filler number ${position}.`),
+    );
+
+    const graph = buildChunkGraph(crowd, [], noMarks);
+
+    expect(graph.droppedNodes).toBe(crowd.length - graph.nodes.length);
+    expect(graph.droppedNodes).toBeGreaterThan(0);
+  });
+
+  it("has nothing to report when the whole universe fits", () => {
+    const graph = buildChunkGraph([chunk("a", "A rule.")], [], noMarks);
+
+    expect(graph.droppedNodes).toBe(0);
+  });
+
   it("drops an edge whose chunk did not make it onto the canvas", () => {
     const crowd = Array.from({ length: 1300 }, (_, position) =>
       chunk(`filler-${position}`, `Filler number ${position}.`),
