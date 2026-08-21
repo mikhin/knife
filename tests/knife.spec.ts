@@ -47,7 +47,7 @@ const chunkCount = async (page: Page): Promise<number> => {
   return ((await response.json()) as unknown[]).length;
 };
 
-const chunkRow = (page: Page, text: string) =>
+const chunkRow = (page: Page, text: RegExp | string) =>
   page
     .getByTestId("chunk-list")
     .getByRole("button", { exact: false, name: text });
@@ -90,6 +90,45 @@ test.describe("Вселенная требований, в которой мож
       timeout: 60000,
     });
     await expect.poll(async () => chunkCount(page)).toBe(4000);
+  });
+
+  test("Вставляю простыню прямо в поле, а не файлом", async ({ page }) => {
+    await createProject(page);
+
+    const sheet = [
+      "# Night audit",
+      "",
+      "The night auditor closes the shift report before midnight.",
+      "",
+      "Breaks are unpaid; overtime is approved by the property manager.",
+    ].join("\n");
+
+    const field = page.getByPlaceholder(/paste a whole sheet/);
+    await field.fill(sheet);
+
+    // Сколько выйдет чанков, видно до нажатия
+    await expect(page.getByTestId("paste-preview")).toHaveText("4 chunks");
+
+    await page.getByRole("button", { exact: true, name: "Add" }).click();
+
+    // Разрез тот же, что у файла: заголовок и точка с запятой режут
+    await expect(chunkRow(page, /^Night audit$/)).toBeVisible();
+    await expect(chunkRow(page, "Breaks are unpaid;")).toBeVisible();
+    await expect.poll(async () => chunkCount(page)).toBe(4);
+  });
+
+  test("Одна фраза остаётся одним чанком", async ({ page }) => {
+    await createProject(page);
+
+    await page
+      .getByPlaceholder(/paste a whole sheet/)
+      .fill("The night auditor closes the shift report.");
+
+    await expect(page.getByTestId("paste-preview")).toHaveText("One chunk");
+
+    await page.getByRole("button", { exact: true, name: "Add" }).click();
+
+    await expect.poll(async () => chunkCount(page)).toBe(1);
   });
 
   test("Строки таблиц живут наравне с текстом", async ({ page }) => {
@@ -269,7 +308,7 @@ test.describe("Вселенная требований, в которой мож
 
     // Новый становится обычным чанком, наравне с остальными
     await page
-      .getByPlaceholder("Write a new chunk")
+      .getByPlaceholder(/paste a whole sheet/)
       .fill("Every shift starts at eight sharp.");
     await page.getByRole("button", { exact: true, name: "Add" }).click();
 

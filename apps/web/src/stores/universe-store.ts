@@ -1,6 +1,7 @@
 import { atom, computed } from "nanostores";
 import { chunksApi } from "@/api/chunks-api";
 import { chunkSource } from "@/services/chunking/chunk-source";
+import { detectPastedFormat } from "@/services/chunking/detect-pasted-format";
 import { tokenizeText } from "@/services/text/tokenize-text";
 import { $similarityThreshold } from "@/stores/settings-store";
 import type { Chunk } from "@knife/contract";
@@ -85,15 +86,16 @@ export const openProject = async (projectId: string): Promise<void> => {
 };
 
 /**
- * The file is cut here, in the browser, and only the chunks travel on. The
- * sheet itself is never uploaded and never stored.
+ * The only way text enters a universe, whether it was typed, pasted or read
+ * from a file. It is cut here in the browser — one sentence lands as one
+ * chunk, a whole sheet as many — and the file itself never leaves the page.
  */
-export const ingestSource = async (
+export const addText = async (
   projectId: string,
-  source: string,
-  format: SourceFormat,
+  text: string,
+  format: SourceFormat = detectPastedFormat(text),
 ): Promise<number> => {
-  const texts = chunkSource(source, format);
+  const texts = chunkSource(text, format);
   if (texts.length === 0) {
     return 0;
   }
@@ -101,14 +103,6 @@ export const ingestSource = async (
   const created = await chunksApi.addMany(projectId, texts);
   analyse([...$chunks.get(), ...created]);
   return texts.length;
-};
-
-export const addChunk = async (
-  projectId: string,
-  text: string,
-): Promise<void> => {
-  const created = await chunksApi.add(projectId, text);
-  analyse([...$chunks.get(), created]);
 };
 
 /**

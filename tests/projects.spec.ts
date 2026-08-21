@@ -32,7 +32,7 @@ test.describe("Проекты заводятся, переименовывают
     await createProject(page, before);
 
     await page
-      .getByPlaceholder("Write a new chunk")
+      .getByPlaceholder(/paste a whole sheet/)
       .fill("The night auditor closes the shift report.");
     await page.getByRole("button", { exact: true, name: "Add" }).click();
     await expect(page.getByTestId("chunk-list")).toContainText("night auditor");
@@ -69,7 +69,7 @@ test.describe("Проекты заводятся, переименовывают
     await page.goto("/");
     await createProject(page, name);
     await page
-      .getByPlaceholder("Write a new chunk")
+      .getByPlaceholder(/paste a whole sheet/)
       .fill("The night auditor closes the shift report.");
     await page.getByRole("button", { exact: true, name: "Add" }).click();
     await expect(page.getByTestId("chunk-list")).toContainText("night auditor");

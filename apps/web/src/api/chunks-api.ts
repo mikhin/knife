@@ -31,12 +31,6 @@ const batches = (texts: string[]): string[][] => {
 };
 
 export const chunksApi = {
-  add: (projectId: string, text: string): Promise<Chunk> =>
-    request(`/api/projects/${projectId}/chunks`, {
-      body: JSON.stringify({ text }),
-      method: "POST",
-    }),
-
   addMany: async (projectId: string, texts: string[]): Promise<Chunk[]> => {
     const created: Chunk[] = [];
 

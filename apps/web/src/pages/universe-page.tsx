@@ -23,7 +23,7 @@ import {
   $selectedChunkId,
   $waterByChunk,
   $wordProfile,
-  addChunk,
+  addText,
   deleteChunk,
   openProject,
   selectChunk,
@@ -123,7 +123,7 @@ export const UniversePage = (): JSX.Element => {
             <>
               <NewChunkForm
                 onAdd={(text) => {
-                  attempt(addChunk(projectId, text));
+                  attempt(addText(projectId, text));
                 }}
               />
               <FileImport projectId={projectId} />

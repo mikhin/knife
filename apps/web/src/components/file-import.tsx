@@ -1,7 +1,7 @@
 import { type ChangeEvent, type JSX, useState } from "react";
 import { detectSourceFormat } from "@/lib/detect-source-format";
 import { attempt } from "@/stores/failure-store";
-import { ingestSource } from "@/stores/universe-store";
+import { addText } from "@/stores/universe-store";
 
 type Props = {
   projectId: string;
@@ -19,7 +19,7 @@ export const FileImport = ({ projectId }: Props): JSX.Element => {
     file: File,
     input: HTMLInputElement,
   ): Promise<void> => {
-    const count = await ingestSource(
+    const count = await addText(
       projectId,
       await file.text(),
       detectSourceFormat(file.name),
