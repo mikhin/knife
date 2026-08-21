@@ -18,11 +18,12 @@ const FIXTURES = path.join(__dirname, "fixtures");
 const SHEET = path.join(FIXTURES, "night-audit.md");
 const HANDBOOK = path.join(FIXTURES, "handbook.txt");
 
-let universeCount = 0;
+let projectCount = 0;
 
-const openUniverse = async (page: Page): Promise<string> => {
-  universeCount += 1;
-  const name = `universe-${process.pid}-${universeCount}`;
+/** Заводит проект — папку, вселенная в нём появится следом. */
+const createProject = async (page: Page): Promise<string> => {
+  projectCount += 1;
+  const name = `project-${process.pid}-${projectCount}`;
 
   await page.goto("/");
   await page.getByPlaceholder("New project name").fill(name);
@@ -91,7 +92,7 @@ const clickAnyGraphNode = async (page: Page): Promise<string> => {
 
 test.describe("Вселенная требований, в которой можно ориентироваться", () => {
   test("Приношу простыню", async ({ page }) => {
-    await openUniverse(page);
+    await createProject(page);
 
     await bringSheet(page, SHEET);
 
@@ -106,7 +107,7 @@ test.describe("Вселенная требований, в которой мож
   test("Приношу простыню, которая не влезает в один запрос", async ({
     page,
   }) => {
-    await openUniverse(page);
+    await createProject(page);
 
     const sheet = Array.from(
       { length: 4000 },
@@ -127,7 +128,7 @@ test.describe("Вселенная требований, в которой мож
   });
 
   test("Строки таблиц живут наравне с текстом", async ({ page }) => {
-    await openUniverse(page);
+    await createProject(page);
     await bringSheet(page, SHEET);
 
     // Строка таблицы стала обычным чанком — и с внешними трубами, и без них
@@ -147,7 +148,7 @@ test.describe("Вселенная требований, в которой мож
   });
 
   test("Вижу повторы", async ({ page }) => {
-    await openUniverse(page);
+    await createProject(page);
 
     // Первый файл пришёл раньше, второй сегодня
     await bringSheet(page, SHEET);
@@ -167,7 +168,7 @@ test.describe("Вселенная требований, в которой мож
   });
 
   test("Вижу воду", async ({ page }) => {
-    await openUniverse(page);
+    await createProject(page);
     await bringSheet(page, SHEET);
 
     const watery = chunkRow(page, "It should be noted that this is basically");
@@ -183,7 +184,7 @@ test.describe("Вселенная требований, в которой мож
   });
 
   test("Вижу висящие куски", async ({ page }) => {
-    await openUniverse(page);
+    await createProject(page);
     await bringSheet(page, SHEET);
 
     const lonely = chunkRow(page, "Peacocks roam the orangery unsupervised.");
@@ -196,7 +197,7 @@ test.describe("Вселенная требований, в которой мож
   });
 
   test("Формы одного слова — одно слово", async ({ page }) => {
-    await openUniverse(page);
+    await createProject(page);
     await bringSheet(page, SHEET);
 
     await page.getByPlaceholder(/Search a word/).fill("shift");
@@ -215,7 +216,7 @@ test.describe("Вселенная требований, в которой мож
   test("Слово ведёт к связям и вхождениям: ввожу слово в поиск", async ({
     page,
   }) => {
-    await openUniverse(page);
+    await createProject(page);
     await bringSheet(page, SHEET);
 
     await page.getByPlaceholder(/Search a word/).fill("auditor");
@@ -234,7 +235,7 @@ test.describe("Вселенная требований, в которой мож
   test("Слово ведёт к связям и вхождениям: кликаю по слову на графе", async ({
     page,
   }) => {
-    await openUniverse(page);
+    await createProject(page);
     await bringSheet(page, SHEET);
 
     await page.getByRole("button", { name: "Words" }).click();
@@ -246,7 +247,7 @@ test.describe("Вселенная требований, в которой мож
   });
 
   test("Хожу между графом и текстом", async ({ page }) => {
-    await openUniverse(page);
+    await createProject(page);
     await bringSheet(page, SHEET);
 
     // Кликаю по узлу графа — попадаю на этот чанк
@@ -263,7 +264,7 @@ test.describe("Вселенная требований, в которой мож
   });
 
   test("Кручу пороги под свой текст", async ({ page }) => {
-    await openUniverse(page);
+    await createProject(page);
     await bringSheet(page, SHEET);
     await bringSheet(page, HANDBOOK);
 
@@ -286,7 +287,7 @@ test.describe("Вселенная требований, в которой мож
   });
 
   test("Правки нет — удаляю и завожу заново", async ({ page }) => {
-    await openUniverse(page);
+    await createProject(page);
     await bringSheet(page, SHEET);
 
     const doomed = chunkRow(page, "A shift starts at eight.");
@@ -303,7 +304,7 @@ test.describe("Вселенная требований, в которой мож
     await page
       .getByPlaceholder("Write a new chunk")
       .fill("Every shift starts at eight sharp.");
-    await page.getByRole("button", { name: "Add" }).click();
+    await page.getByRole("button", { exact: true, name: "Add" }).click();
 
     const fresh = chunkRow(page, "Every shift starts at eight sharp.");
     await expect(fresh).toBeVisible();
@@ -335,7 +336,7 @@ test.describe("Вселенная требований, в которой мож
   });
 
   test("Ничего, кроме текста, не хранится", async ({ page, request }) => {
-    await openUniverse(page);
+    await createProject(page);
     await bringSheet(page, SHEET);
 
     const projectId = await page.evaluate(() =>
