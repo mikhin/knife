@@ -1,11 +1,20 @@
 import "reflect-metadata";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
+import { json } from "express";
 import { AppModule } from "@/app.module";
+
+/**
+ * A sheet arrives in batches, and the default hundred kilobytes cut them off
+ * at roughly two thousand chunks. Stated here rather than inherited, so the
+ * limit and the batch size are visible next to each other.
+ */
+const MAX_BODY = "2mb";
 
 const bootstrap = async (): Promise<void> => {
   const app = await NestFactory.create(AppModule);
 
+  app.use(json({ limit: MAX_BODY }));
   app.useGlobalPipes(
     new ValidationPipe({
       forbidNonWhitelisted: true,

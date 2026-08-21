@@ -48,10 +48,17 @@ export class ChunksService {
     return chunks.map(toView);
   }
 
-  async remove(id: string): Promise<void> {
-    const deleted = await this.prisma.chunk.deleteMany({ where: { id } });
+  /**
+   * Scoped to the project the caller believes the chunk belongs to. Deletion
+   * has no undo, so a stale screen must fail rather than take a chunk out of
+   * a universe nobody was looking at.
+   */
+  async remove(projectId: string, id: string): Promise<void> {
+    const deleted = await this.prisma.chunk.deleteMany({
+      where: { id, projectId },
+    });
     if (deleted.count === 0) {
-      throw new NotFoundException("No such chunk");
+      throw new NotFoundException("No such chunk in this project");
     }
   }
 

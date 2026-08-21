@@ -70,7 +70,17 @@ const analyse = (chunks: Chunk[]): void => {
   ask({ chunks, type: "analyse" });
 };
 
+/**
+ * Bumped on every open. A universe that arrives after the user has moved on
+ * is dropped: showing it would leave chunks of one project on screen while
+ * the header names another, and deleting from that screen is irreversible.
+ */
+let opening = 0;
+
 export const openProject = async (projectId: string): Promise<void> => {
+  const mine = opening + 1;
+  opening = mine;
+
   if (!projectId) {
     analyse([]);
     return;
@@ -79,10 +89,15 @@ export const openProject = async (projectId: string): Promise<void> => {
   $stage.set("loading");
   $failure.set(undefined);
   try {
-    analyse(await chunksApi.list(projectId));
+    const chunks = await chunksApi.list(projectId);
+    if (mine === opening) {
+      analyse(chunks);
+    }
   } catch (error) {
-    $failure.set(error instanceof Error ? error.message : String(error));
-    $stage.set("empty");
+    if (mine === opening) {
+      $failure.set(error instanceof Error ? error.message : String(error));
+      $stage.set("empty");
+    }
   }
 };
 
@@ -118,7 +133,7 @@ export const deleteChunk = async (
   projectId: string,
   chunkId: string,
 ): Promise<void> => {
-  await chunksApi.remove(chunkId);
+  await chunksApi.remove(projectId, chunkId);
   await openProject(projectId);
 };
 

@@ -43,9 +43,12 @@ export class ChunksController {
     return this.chunks.createMany(projectId, dto.texts);
   }
 
-  @Delete("chunks/:id")
+  @Delete("projects/:projectId/chunks/:id")
   @HttpCode(204)
-  remove(@Param("id", ParseUUIDPipe) id: string): Promise<void> {
-    return this.chunks.remove(id);
+  remove(
+    @Param("projectId", ParseUUIDPipe) projectId: string,
+    @Param("id", ParseUUIDPipe) id: string,
+  ): Promise<void> {
+    return this.chunks.remove(projectId, id);
   }
 }

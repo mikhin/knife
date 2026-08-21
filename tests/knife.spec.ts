@@ -106,6 +106,29 @@ test.describe("Вселенная требований, в которой мож
     await expect(chunkRow(page, "A shift starts at eight.")).toBeVisible();
   });
 
+  test("Приношу простыню, которая не влезает в один запрос", async ({
+    page,
+  }) => {
+    await openUniverse(page);
+
+    const sheet = Array.from(
+      { length: 4000 },
+      (_, position) =>
+        `The night auditor closes the shift report of week ${position}.`,
+    ).join("\n\n");
+
+    await page.locator('input[type="file"]').setInputFiles({
+      buffer: Buffer.from(sheet, "utf8"),
+      mimeType: "text/markdown",
+      name: "big-sheet.md",
+    });
+
+    await expect(page.getByText(/dissolved into 4000 chunks/)).toBeVisible({
+      timeout: 60000,
+    });
+    await expect(page.getByTestId("stats")).toContainText("4000 chunks");
+  });
+
   test("Строки таблиц живут наравне с текстом", async ({ page }) => {
     await openUniverse(page);
     await bringSheet(page, SHEET);

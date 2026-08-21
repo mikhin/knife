@@ -13,10 +13,11 @@ const chunks = {
   listByProject: vi
     .fn<(projectId: string) => Promise<Chunk[]>>()
     .mockResolvedValue([]),
-  remove: vi.fn<(id: string) => Promise<void>>(),
+  remove: vi.fn<(projectId: string, id: string) => Promise<void>>(),
 };
 
 const PROJECT_ID = "8f1a5c62-0f7a-4a3e-9d4e-6c1b2a3d4e5f";
+const CHUNK_ID = "1d2c3b4a-5e6f-4a7b-8c9d-0e1f2a3b4c5d";
 
 describe("chunk routes", () => {
   let app: INestApplication;
@@ -43,10 +44,10 @@ describe("chunk routes", () => {
 
   it("offers no way to edit a chunk in place", async () => {
     const patched = await call()
-      .patch(`/api/chunks/${PROJECT_ID}`)
+      .patch(`/api/projects/${PROJECT_ID}/chunks/${CHUNK_ID}`)
       .send({ text: "rewritten" });
     const replaced = await call()
-      .put(`/api/chunks/${PROJECT_ID}`)
+      .put(`/api/projects/${PROJECT_ID}/chunks/${CHUNK_ID}`)
       .send({ text: "rewritten" });
 
     expect(patched.status).toBe(404);
@@ -70,9 +71,11 @@ describe("chunk routes", () => {
   it("deletes a chunk for good", async () => {
     chunks.remove.mockResolvedValue(undefined);
 
-    const response = await call().delete(`/api/chunks/${PROJECT_ID}`);
+    const response = await call().delete(
+      `/api/projects/${PROJECT_ID}/chunks/${CHUNK_ID}`,
+    );
 
     expect(response.status).toBe(204);
-    expect(chunks.remove).toHaveBeenCalledWith(PROJECT_ID);
+    expect(chunks.remove).toHaveBeenCalledWith(PROJECT_ID, CHUNK_ID);
   });
 });

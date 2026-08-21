@@ -69,9 +69,20 @@ describe("ChunksService", () => {
   it("reports a delete that matched nothing", async () => {
     prisma.chunk.deleteMany.mockResolvedValue({ count: 0 });
 
-    await expect(chunks.remove("gone")).rejects.toBeInstanceOf(
+    await expect(chunks.remove("universe", "gone")).rejects.toBeInstanceOf(
       NotFoundException,
     );
+  });
+
+  it("refuses to delete a chunk that belongs to another project", async () => {
+    prisma.chunk.deleteMany.mockResolvedValue({ count: 0 });
+
+    await expect(
+      chunks.remove("other-universe", "chunk-1"),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(prisma.chunk.deleteMany).toHaveBeenCalledWith({
+      where: { id: "chunk-1", projectId: "other-universe" },
+    });
   });
 
   it("hands the universe over as plain text with its arrival date", async () => {
