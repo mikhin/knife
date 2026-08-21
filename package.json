@@ -48,11 +48,6 @@
       "prisma",
       "unrs-resolver",
       "@swc/core"
-    ],
-    "overrides": {
-      "nanostores": "1.5.1",
-      "electron-to-chromium": "1.5.411",
-      "baseline-browser-mapping": "2.11.16"
-    }
+    ]
   }
 }
