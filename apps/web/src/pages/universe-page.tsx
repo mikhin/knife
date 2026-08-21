@@ -254,9 +254,6 @@ export const UniversePage = (): JSX.Element => {
                 {report.wordGraph.droppedNodes} rarer words not drawn
               </span>
             ) : null}
-            <span className="text-faint">
-              nothing here is stored — every verdict is recounted on open
-            </span>
           </p>
         </section>
 

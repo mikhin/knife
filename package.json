@@ -8,6 +8,7 @@
   "packageManager": "pnpm@10.30.3",
   "scripts": {
     "dev": "pnpm db:up && pnpm db:migrate && pnpm --parallel --filter \"./apps/*\" dev",
+    "linters:up": "docker compose up -d linters",
     "build": "pnpm --filter \"./apps/*\" build",
     "format:check": "oxfmt --check .",
     "format:fix": "oxfmt --write .",
@@ -21,7 +22,6 @@
     "dead": "pnpm knip && pnpm jscpd",
     "up": "docker compose up -d --build",
     "db:up": "docker compose up -d --wait db",
-    "linters:up": "docker compose up -d linters",
     "e2e": "playwright test",
     "e2e:headed": "playwright test --headed",
     "db:migrate": "pnpm --filter @knife/api exec prisma migrate deploy"

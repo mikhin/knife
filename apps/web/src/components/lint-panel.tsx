@@ -42,11 +42,10 @@ export const LintPanel = ({ chunks }: Props): JSX.Element => {
 
       {report?.available ? (
         <span className="text-xs text-faint">
-          {report.findings.length} findings from {report.tools.join(", ")} —
+          {report.findings.length} findings from {report.tools.join(", ")}
           {coverage && coverage.checked < coverage.total
-            ? ` first ${coverage.checked} of ${coverage.total} chunks,`
-            : ""}{" "}
-          on screen only, never saved
+            ? ` — first ${coverage.checked} of ${coverage.total} chunks`
+            : ""}
         </span>
       ) : null}
     </div>
