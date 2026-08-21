@@ -52,7 +52,9 @@ export const UniverseStats = ({
       ) : null}
 
       {truncatedPairs > 0 ? (
-        <span className="text-faint">{truncatedPairs} weaker pairs not drawn</span>
+        <span className="text-faint">
+          {truncatedPairs} weaker pairs not drawn
+        </span>
       ) : null}
       {droppedWords > 0 ? (
         <span className="text-faint">{droppedWords} rarer words not drawn</span>

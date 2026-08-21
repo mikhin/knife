@@ -114,30 +114,36 @@ const generateUniverse = (size: number): Chunk[] => {
 };
 
 describe("a universe of tens of thousands of chunks", () => {
-  it("shows duplicates, water and the graph without minutes of waiting", () => {
-    const chunks = generateUniverse(UNIVERSE_SIZE);
+  // Единственный тест, которому позволено быть долгим: он про то, сколько
+  // времени занимает вселенная целиком.
+  it(
+    "shows duplicates, water and the graph without minutes of waiting",
+    () => {
+      const chunks = generateUniverse(UNIVERSE_SIZE);
 
-    const started = performance.now();
-    const index = buildUniverseIndex(chunks);
-    const duplicates = findDuplicatePairs(index);
-    const water = detectWater(index);
-    const dangling = findDanglingChunks(index);
-    const graph = buildWordGraph(index);
-    const elapsed = performance.now() - started;
+      const started = performance.now();
+      const index = buildUniverseIndex(chunks);
+      const duplicates = findDuplicatePairs(index);
+      const water = detectWater(index);
+      const dangling = findDanglingChunks(index);
+      const graph = buildWordGraph(index);
+      const elapsed = performance.now() - started;
 
-    expect(index.size).toBe(UNIVERSE_SIZE + 1);
-    expect(duplicates.pairs.length).toBeGreaterThan(0);
+      expect(index.size).toBe(UNIVERSE_SIZE + 1);
+      expect(duplicates.pairs.length).toBeGreaterThan(0);
 
-    // Ни одна проверка не должна ни молчать на всей вселенной, ни утонуть в
-    // ней: доля воды без границ прошла бы и на 0%, и на 95%.
-    const wateryIds = new Set(water.map((verdict) => verdict.chunkId));
-    expect(wateryIds.has("chunk-7")).toBe(true);
-    expect(water.length / index.size).toBeLessThan(0.5);
+      // Ни одна проверка не должна ни молчать на всей вселенной, ни утонуть в
+      // ней: доля воды без границ прошла бы и на 0%, и на 95%.
+      const wateryIds = new Set(water.map((verdict) => verdict.chunkId));
+      expect(wateryIds.has("chunk-7")).toBe(true);
+      expect(water.length / index.size).toBeLessThan(0.5);
 
-    // Висящий здесь ровно один, и он подсажен намеренно.
-    expect(dangling).toEqual(["lonely"]);
+      // Висящий здесь ровно один, и он подсажен намеренно.
+      expect(dangling).toEqual(["lonely"]);
 
-    expect(graph.nodes.length).toBeGreaterThan(0);
-    expect(elapsed).toBeLessThan(BUDGET_MS);
-  });
+      expect(graph.nodes.length).toBeGreaterThan(0);
+      expect(elapsed).toBeLessThan(BUDGET_MS);
+    },
+    BUDGET_MS + 15000,
+  );
 });

@@ -59,7 +59,7 @@ export const UniversePage = (): JSX.Element => {
   }, []);
 
   useEffect(() => {
-    void openProject(projectId);
+    attempt(openProject(projectId));
   }, [projectId]);
 
   const chunkById = useMemo(

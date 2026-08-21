@@ -90,19 +90,13 @@
     ],
     "import/resolver": {
       "typescript": {
-        "project": [
-          "apps/web/tsconfig.json",
-          "apps/api/tsconfig.json"
-        ],
+        "project": ["apps/web/tsconfig.json", "apps/api/tsconfig.json"],
         "noWarnOnMultipleProjects": true
       }
     }
   },
   "rules": {
-    "typescript/consistent-type-definitions": [
-      "error",
-      "type"
-    ],
+    "typescript/consistent-type-definitions": ["error", "type"],
     "typescript/no-explicit-any": "error",
     "typescript/no-non-null-assertion": "error",
     "typescript/ban-ts-comment": "error",
@@ -157,17 +151,13 @@
     "no-underscore-dangle": [
       "error",
       {
-        "allow": [
-          "_count"
-        ]
+        "allow": ["_count"]
       }
     ]
   },
   "overrides": [
     {
-      "files": [
-        "apps/**/*.{ts,tsx}"
-      ],
+      "files": ["apps/**/*.{ts,tsx}"],
       "rules": {
         "boundaries/dependencies": [
           "error",
@@ -193,11 +183,7 @@
                   {
                     "to": {
                       "element": {
-                        "type": [
-                          "components",
-                          "pages",
-                          "hooks"
-                        ]
+                        "type": ["components", "pages", "hooks"]
                       }
                     }
                   }
@@ -216,10 +202,7 @@
                   {
                     "to": {
                       "element": {
-                        "type": [
-                          "api",
-                          "stores"
-                        ]
+                        "type": ["api", "stores"]
                       }
                     }
                   }
@@ -230,11 +213,7 @@
                 "from": [
                   {
                     "element": {
-                      "type": [
-                        "lib",
-                        "types",
-                        "config"
-                      ]
+                      "type": ["lib", "types", "config"]
                     }
                   }
                 ],
@@ -242,11 +221,7 @@
                   {
                     "to": {
                       "element": {
-                        "type": [
-                          "services",
-                          "stores",
-                          "api"
-                        ]
+                        "type": ["services", "stores", "api"]
                       }
                     }
                   }
@@ -265,10 +240,7 @@
                   {
                     "to": {
                       "element": {
-                        "type": [
-                          "stores",
-                          "api"
-                        ]
+                        "type": ["stores", "api"]
                       }
                     }
                   }
@@ -306,10 +278,7 @@
                   {
                     "to": {
                       "element": {
-                        "type": [
-                          "components",
-                          "pages"
-                        ]
+                        "type": ["components", "pages"]
                       }
                     }
                   }
@@ -322,9 +291,7 @@
       }
     },
     {
-      "files": [
-        "apps/web/src/**/*.{ts,tsx}"
-      ],
+      "files": ["apps/web/src/**/*.{ts,tsx}"],
       "rules": {
         "react/rules-of-hooks": "error",
         "react/exhaustive-deps": "warn",
@@ -339,9 +306,7 @@
       }
     },
     {
-      "files": [
-        "apps/api/src/**/*.ts"
-      ],
+      "files": ["apps/api/src/**/*.ts"],
       "rules": {
         "no-relative-import-paths/no-relative-import-paths": [
           "error",
@@ -354,9 +319,7 @@
       }
     },
     {
-      "files": [
-        "**/*.spec.{ts,tsx}"
-      ],
+      "files": ["**/*.spec.{ts,tsx}"],
       "rules": {
         "boundaries/dependencies": "off",
         "sonarjs/no-identical-functions": "off",

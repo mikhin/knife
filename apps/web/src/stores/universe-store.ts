@@ -3,7 +3,6 @@ import { chunksApi } from "@/api/chunks-api";
 import { chunkSource } from "@/services/chunking/chunk-source";
 import { tokenizeText } from "@/services/text/tokenize-text";
 import { buildChunkGraph } from "@/services/universe/build-chunk-graph";
-import { $failure } from "@/stores/failure-store";
 import { $similarityThreshold } from "@/stores/settings-store";
 import type { Chunk } from "@knife/contract";
 import type { SourceFormat } from "@/types/source-format";
@@ -87,17 +86,17 @@ export const openProject = async (projectId: string): Promise<void> => {
   }
 
   $stage.set("loading");
-  $failure.set(undefined);
   try {
     const chunks = await chunksApi.list(projectId);
     if (mine === opening) {
       analyse(chunks);
     }
   } catch (error) {
+    // The stage is this function's business; saying so on screen is not.
     if (mine === opening) {
-      $failure.set(error instanceof Error ? error.message : String(error));
       $stage.set("empty");
     }
+    throw error;
   }
 };
 
