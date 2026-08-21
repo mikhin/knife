@@ -19,7 +19,7 @@ test.describe("Проекты заводятся, переименовывают
     await createProject(page, name);
 
     await expect(page.locator("select")).toHaveValue(/.+/);
-    await expect(page.locator("select")).toContainText(`${name} (0 chunks)`);
+    await expect(page.locator("select")).toContainText(name);
   });
 
   test("Проект можно переименовать, чанки остаются на месте", async ({
@@ -35,13 +35,13 @@ test.describe("Проекты заводятся, переименовывают
       .getByPlaceholder("Write a new chunk")
       .fill("The night auditor closes the shift report.");
     await page.getByRole("button", { exact: true, name: "Add" }).click();
-    await expect(page.locator("select")).toContainText("(1 chunks)");
+    await expect(page.getByTestId("chunk-list")).toContainText("night auditor");
 
     await page.getByRole("button", { name: "Rename" }).click();
     await page.getByLabel("New name for this project").fill(after);
     await page.getByRole("button", { name: "Save" }).click();
 
-    await expect(page.locator("select")).toContainText(`${after} (1 chunks)`);
+    await expect(page.locator("select")).toContainText(after);
     await expect(page.getByTestId("chunk-list")).toContainText("night auditor");
   });
 
@@ -72,7 +72,7 @@ test.describe("Проекты заводятся, переименовывают
       .getByPlaceholder("Write a new chunk")
       .fill("The night auditor closes the shift report.");
     await page.getByRole("button", { exact: true, name: "Add" }).click();
-    await expect(page.locator("select")).toContainText("(1 chunks)");
+    await expect(page.getByTestId("chunk-list")).toContainText("night auditor");
 
     await page.getByRole("button", { name: "Delete" }).click();
     await expect(page.getByText(/Delete .* and its 1 chunks/)).toBeVisible();

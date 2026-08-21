@@ -7,18 +7,11 @@ import { PrismaService } from "@/db/prisma.service";
 import type { Project as ProjectRecord } from "@/generated/prisma/client";
 import type { Project } from "@knife/contract";
 
-type ProjectWithCount = ProjectRecord & {
-  _count: { chunks: number };
-};
-
-const toView = (project: ProjectWithCount): Project => ({
-  chunkCount: project._count.chunks,
+const toView = (project: ProjectRecord): Project => ({
   createdAt: project.createdAt.toISOString(),
   id: project.id,
   name: project.name,
 });
-
-const WITH_COUNT = { _count: { select: { chunks: true } } } as const;
 
 @Injectable()
 export class ProjectsService {
@@ -26,7 +19,6 @@ export class ProjectsService {
 
   async list(): Promise<Project[]> {
     const projects = await this.prisma.project.findMany({
-      include: WITH_COUNT,
       orderBy: { createdAt: "desc" },
     });
     return projects.map(toView);
@@ -43,14 +35,12 @@ export class ProjectsService {
 
     const project = await this.prisma.project.create({
       data: { name: trimmed },
-      include: WITH_COUNT,
     });
     return toView(project);
   }
 
   async get(id: string): Promise<Project> {
     const project = await this.prisma.project.findUnique({
-      include: WITH_COUNT,
       where: { id },
     });
     if (!project) {

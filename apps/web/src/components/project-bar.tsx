@@ -34,9 +34,7 @@ export const ProjectBar = (): JSX.Element => {
           ) : null}
           {projects.map((project) => (
             <option key={project.id} value={project.id}>
-              {project.name} (
-              {project.id === currentId ? chunks.length : project.chunkCount}{" "}
-              chunks)
+              {project.name}
             </option>
           ))}
         </select>

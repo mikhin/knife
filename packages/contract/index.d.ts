@@ -14,7 +14,6 @@ export type Chunk = {
 };
 
 export type Project = {
-  chunkCount: number;
   createdAt: string;
   id: string;
   name: string;

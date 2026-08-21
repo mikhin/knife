@@ -38,10 +38,13 @@ const bringSheet = async (page: Page, file: string): Promise<void> => {
   await expect(page.getByText(/Added \d+ chunks from/)).toBeVisible();
 };
 
-/** Сколько чанков во вселенной, видно там же, где её выбирают. */
+/** Интерфейс чанки не считает, поэтому спрашиваем у самой вселенной. */
 const chunkCount = async (page: Page): Promise<number> => {
-  const label = await page.locator("select option:checked").textContent();
-  return Number(/\((\d+) chunks\)/.exec(label ?? "")?.[1] ?? "0");
+  const projectId = await page.evaluate(() =>
+    localStorage.getItem("knife:project"),
+  );
+  const response = await page.request.get(`/api/projects/${projectId}/chunks`);
+  return ((await response.json()) as unknown[]).length;
 };
 
 const chunkRow = (page: Page, text: string) =>
