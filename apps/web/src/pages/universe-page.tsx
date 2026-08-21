@@ -7,13 +7,15 @@ import { FileImport } from "@/components/file-import";
 import { LintPanel } from "@/components/lint-panel";
 import { NewChunkForm } from "@/components/new-chunk-form";
 import { ProjectBar } from "@/components/project-bar";
-import { SearchBox } from "@/components/search-box";
+import { TextSearch } from "@/components/text-search";
+import { WordSearch } from "@/components/word-search";
 import { RepeatLevel } from "@/components/repeat-level";
 import { WordInspector } from "@/components/word-inspector";
 import { WordList } from "@/components/word-list";
 import { attempt } from "@/stores/failure-store";
 import { $lintReport, checkLinters } from "@/stores/lint-store";
 import { $currentProjectId, loadProjects } from "@/stores/projects-store";
+import { filterWords } from "@/services/universe/filter-words";
 import {
   $chunks,
   $danglingIds,
@@ -22,6 +24,7 @@ import {
   $searchHits,
   $selectedChunkId,
   $waterByChunk,
+  $wordFilter,
   $wordProfile,
   addText,
   deleteChunk,
@@ -39,6 +42,7 @@ export const UniversePage = (): JSX.Element => {
   const danglingIds = useStore($danglingIds);
   const selectedChunkId = useStore($selectedChunkId);
   const wordProfile = useStore($wordProfile);
+  const wordFilter = useStore($wordFilter);
   const searchHits = useStore($searchHits);
   const lintReport = useStore($lintReport);
 
@@ -76,6 +80,11 @@ export const UniversePage = (): JSX.Element => {
     [chunkById, chunks, searchHits],
   );
 
+  const shownWords = useMemo(
+    () => filterWords(report?.words ?? [], wordFilter),
+    [report, wordFilter],
+  );
+
   const selectedChunk = selectedChunkId
     ? chunkById.get(selectedChunkId)
     : undefined;
@@ -110,7 +119,6 @@ export const UniversePage = (): JSX.Element => {
       <ProjectBar />
 
       <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-2">
-        <SearchBox hits={searchHits?.length} />
         <RepeatLevel pairs={report?.duplicates.pairs ?? []} />
         <LintPanel chunks={chunks} />
       </div>
@@ -119,6 +127,8 @@ export const UniversePage = (): JSX.Element => {
 
       <main className="grid min-h-0 flex-1 grid-cols-[minmax(320px,1.4fr)_minmax(220px,0.6fr)_minmax(0,1fr)]">
         <section className="overflow-y-auto border-r border-line p-3">
+          <TextSearch hits={searchHits?.length} />
+
           {projectId ? (
             <>
               <NewChunkForm
@@ -145,16 +155,14 @@ export const UniversePage = (): JSX.Element => {
         </section>
 
         <section className="overflow-y-auto border-r border-line p-3">
-          <h2 className="mb-2 text-xs tracking-wider text-faint uppercase">
-            Words
-          </h2>
+          <WordSearch shown={shownWords.length} />
           <WordList
             onPick={(stem) => {
               selectChunk(undefined);
               selectWord(stem);
             }}
             selectedStem={wordProfile?.stem}
-            words={report?.words ?? []}
+            words={shownWords}
           />
         </section>
 

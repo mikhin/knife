@@ -1,6 +1,30 @@
 import { tokenizeText } from "@/services/text/tokenize-text";
 import type { SearchHit, UniverseIndex } from "@/types/universe";
 
+/**
+ * Words the query could mean. A whole word matches by stem, so "shift" still
+ * finds "shifts"; a fragment matches by what it is part of, so "shif" finds
+ * them too, and nobody has to know the exact wording to look for it.
+ */
+const meanings = (index: UniverseIndex, word: string): Set<string> => {
+  const matched = new Set<string>();
+  const fragment = word.toLowerCase();
+
+  for (const token of tokenizeText(word)) {
+    if (!token.isStop && index.postings.has(token.stem)) {
+      matched.add(token.stem);
+    }
+  }
+
+  for (const [stem, label] of index.surfaceForms) {
+    if (stem.includes(fragment) || label.includes(fragment)) {
+      matched.add(stem);
+    }
+  }
+
+  return matched;
+};
+
 const spansOf = (
   tokens: Array<{ end: number; start: number; stem: string }>,
   wanted: Set<string>,
@@ -9,35 +33,51 @@ const spansOf = (
     .filter((token) => wanted.has(token.stem))
     .map((token) => ({ end: token.end, start: token.start }));
 
+/** A word that carries no meaning of its own is not searched for. */
+const isServiceWord = (word: string): boolean => {
+  const tokens = tokenizeText(word);
+  return tokens.length > 0 && tokens.every((token) => token.isStop);
+};
+
 /**
- * Search runs on stems, which is why looking for "shift" also returns the
- * chunk that only ever says "shifts".
+ * Every word of the query has to be in the chunk; each of them may be there
+ * in any of its meanings.
  */
 export const searchUniverse = (
   index: UniverseIndex,
   query: string,
 ): SearchHit[] => {
-  const wanted = new Set(
-    tokenizeText(query)
-      .filter((token) => !token.isStop)
-      .map((token) => token.stem),
-  );
-  if (wanted.size === 0) {
+  const words = query
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .filter((word) => !isServiceWord(word));
+  if (words.length === 0) {
     return [];
   }
 
-  const candidates = [...wanted]
-    .map((stem) => index.postings.get(stem) ?? [])
-    .toSorted((a, b) => a.length - b.length);
+  const perWord = words.map((word) => meanings(index, word));
+  if (perWord.some((matched) => matched.size === 0)) {
+    return [];
+  }
 
-  const narrowest = candidates[0] ?? [];
+  const all = new Set(perWord.flatMap((matched) => [...matched]));
+  const narrowest = perWord.toSorted((a, b) => a.size - b.size)[0] ?? new Set();
 
-  return narrowest
+  const candidates = new Set(
+    [...narrowest].flatMap((stem) => index.postings.get(stem) ?? []),
+  );
+
+  return [...candidates]
     .map((position) => index.chunks[position])
     .filter((chunk) => chunk !== undefined)
-    .filter((chunk) => [...wanted].every((stem) => chunk.weights.has(stem)))
+    .filter((chunk) =>
+      perWord.every((matched) =>
+        [...matched].some((stem) => chunk.weights.has(stem)),
+      ),
+    )
     .map((chunk) => ({
       chunkId: chunk.id,
-      spans: spansOf(chunk.tokens, wanted),
+      spans: spansOf(chunk.tokens, all),
     }));
 };

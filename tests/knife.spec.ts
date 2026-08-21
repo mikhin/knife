@@ -204,7 +204,7 @@ test.describe("Вселенная требований, в которой мож
     await createProject(page);
     await bringSheet(page, SHEET);
 
-    await page.getByPlaceholder(/Search a word/).fill("shift");
+    await page.getByPlaceholder("Find in chunks").fill("shift");
 
     // "shift" находит и "shifts", и "shift"
     await expect(chunkRow(page, "A shift starts at eight.")).toBeVisible();
@@ -212,9 +212,11 @@ test.describe("Вселенная требований, в которой мож
       chunkRow(page, "All shifts are approved by the manager."),
     ).toBeVisible();
 
-    // И это один узел, а не два: у слова один профиль на все формы
-    const word = page.getByTestId("word-inspector");
-    await expect(word.getByRole("heading", { level: 2 })).toHaveText(/shifts?/);
+    // И в списке слов это одна строка, а не две
+    await page.getByPlaceholder("Find a word").fill("shift");
+    await expect(page.getByTestId("word-list").getByRole("button")).toHaveCount(
+      1,
+    );
   });
 
   test("Слово ведёт к связям и вхождениям: ввожу слово в поиск", async ({
@@ -223,7 +225,8 @@ test.describe("Вселенная требований, в которой мож
     await createProject(page);
     await bringSheet(page, SHEET);
 
-    await page.getByPlaceholder(/Search a word/).fill("auditor");
+    await page.getByPlaceholder("Find a word").fill("auditor");
+    await wordRow(page, /^auditor \d+$/).click();
 
     const word = page.getByTestId("word-inspector");
     // Вижу все чанки, где это слово есть
@@ -247,6 +250,22 @@ test.describe("Вселенная требований, в которой мож
     const word = page.getByTestId("word-inspector");
     await expect(word).toContainText("Travels with");
     await expect(word).toContainText(/Appears in \d+ chunks/);
+  });
+
+  test("Ищу по обрывку слова", async ({ page }) => {
+    await createProject(page);
+    await bringSheet(page, SHEET);
+
+    // Точного слова знать не нужно: хватает куска
+    await page.getByPlaceholder("Find in chunks").fill("audit");
+    await expect(
+      chunkRow(page, "The night auditor closes the shift report"),
+    ).toBeVisible();
+
+    // И список слов сужается тем же обрывком: остаётся только родня
+    await page.getByPlaceholder("Find a word").fill("audit");
+    await expect(wordRow(page, /^auditor \d+$/)).toBeVisible();
+    await expect(wordRow(page, /^peacocks? \d+$/)).toBeHidden();
   });
 
   test("Хожу между списком слов и текстом", async ({ page }) => {
@@ -317,7 +336,7 @@ test.describe("Вселенная требований, в которой мож
     const fresh = chunkRow(page, "Every shift starts at eight sharp.");
     await expect(fresh).toBeVisible();
 
-    await page.getByPlaceholder(/Search a word/).fill("shift");
+    await page.getByPlaceholder("Find in chunks").fill("shift");
     await expect(fresh).toBeVisible();
   });
 
@@ -413,7 +432,7 @@ test.describe("Вселенная требований, в которой мож
 
     // Удаление одного чанка — обычное движение в этом инструменте, и оно не
     // должно стоить дороже, чем открыть проект целиком.
-    await page.getByPlaceholder(/Search a word/).fill("midnight");
+    await page.getByPlaceholder("Find in chunks").fill("midnight");
     await chunkRow(
       page,
       "The night auditor closes the shift report before midnight.",

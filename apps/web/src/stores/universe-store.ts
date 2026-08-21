@@ -2,7 +2,6 @@ import { atom, computed } from "nanostores";
 import { chunksApi } from "@/api/chunks-api";
 import { chunkSource } from "@/services/chunking/chunk-source";
 import { detectPastedFormat } from "@/services/chunking/detect-pasted-format";
-import { tokenizeText } from "@/services/text/tokenize-text";
 import { $similarityThreshold } from "@/stores/settings-store";
 import type { Chunk } from "@knife/contract";
 import type { SourceFormat } from "@/types/source-format";
@@ -128,30 +127,22 @@ export const selectWord = (stem: string): void => {
   ask({ stem, type: "word" });
 };
 
-/**
- * Typing a single word answers both halves of the question at once: the chunks
- * it appears in and the words it travels with — the same answer a click on the
- * graph gives.
- */
-export const searchWord = (query: string): void => {
+/** Searches the text of the universe; the word list has a filter of its own. */
+export const searchChunks = (query: string): void => {
   $searchQuery.set(query);
 
-  const stems = tokenizeText(query)
-    .filter((token) => !token.isStop)
-    .map((token) => token.stem);
-
-  if (stems.length === 0) {
+  if (query.trim() === "") {
     $searchHits.set(undefined);
     return;
   }
 
   ask({ query, type: "search" });
+};
 
-  const [only] = stems;
-  if (stems.length === 1 && only !== undefined) {
-    $selectedChunkId.set(undefined);
-    ask({ stem: only, type: "word" });
-  }
+export const $wordFilter = atom("");
+
+export const filterWordList = (fragment: string): void => {
+  $wordFilter.set(fragment);
 };
 
 export const $duplicatesAboveThreshold = computed(

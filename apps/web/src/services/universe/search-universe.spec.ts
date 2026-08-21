@@ -58,6 +58,31 @@ describe("searchUniverse", () => {
     ]);
   });
 
+  it("finds a word by a fragment of it", () => {
+    const hits = searchUniverse(buildUniverseIndex(universe), "shif");
+
+    expect(hits.map((hit) => hit.chunkId).toSorted()).toEqual([
+      "many",
+      "one",
+      "verb",
+    ]);
+  });
+
+  it("highlights what the fragment matched", () => {
+    const index = buildUniverseIndex(universe);
+    const hit = searchUniverse(index, "shif").find(
+      (candidate) => candidate.chunkId === "many",
+    );
+    const text = index.byId.get("many")?.text ?? "";
+    const [span] = hit?.spans ?? [];
+
+    expect(text.slice(span?.start ?? 0, span?.end ?? 0)).toBe("shifts");
+  });
+
+  it("finds nothing for a fragment no word contains", () => {
+    expect(searchUniverse(buildUniverseIndex(universe), "zzz")).toEqual([]);
+  });
+
   it("returns nothing for a query of service words only", () => {
     expect(searchUniverse(buildUniverseIndex(universe), "the and of")).toEqual(
       [],
