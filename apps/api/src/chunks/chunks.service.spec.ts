@@ -10,7 +10,6 @@ type Args = Record<string, unknown>;
 const prisma = {
   chunk: {
     createManyAndReturn: vi.fn<(args: Args) => Promise<ChunkRecord[]>>(),
-    deleteMany: vi.fn<(args: Args) => Promise<{ count: number }>>(),
     findMany: vi.fn<(args: Args) => Promise<ChunkRecord[]>>(),
   },
   project: {
@@ -64,25 +63,6 @@ describe("ChunksService", () => {
     await expect(chunks.createMany("gone", ["A rule."])).rejects.toBeInstanceOf(
       NotFoundException,
     );
-  });
-
-  it("reports a delete that matched nothing", async () => {
-    prisma.chunk.deleteMany.mockResolvedValue({ count: 0 });
-
-    await expect(chunks.remove("universe", "gone")).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
-  });
-
-  it("refuses to delete a chunk that belongs to another project", async () => {
-    prisma.chunk.deleteMany.mockResolvedValue({ count: 0 });
-
-    await expect(
-      chunks.remove("other-universe", "chunk-1"),
-    ).rejects.toBeInstanceOf(NotFoundException);
-    expect(prisma.chunk.deleteMany).toHaveBeenCalledWith({
-      where: { id: "chunk-1", projectId: "other-universe" },
-    });
   });
 
   it("hands the universe over as plain text with its arrival date", async () => {

@@ -1,9 +1,7 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
-  HttpCode,
   Param,
   ParseUUIDPipe,
   Post,
@@ -14,9 +12,9 @@ import { CreateChunksDto } from "@/chunks/create-chunks.dto";
 import type { Chunk } from "@knife/contract";
 
 /**
- * No PATCH and no PUT, deliberately: a chunk is deleted and rewritten rather
- * than edited, so a wording that was reviewed can never silently become
- * another one under the same id.
+ * A chunk is written once and never touched again: no PATCH, no PUT, no
+ * DELETE. A wording that was reviewed cannot silently become another one, and
+ * nothing disappears from the universe behind anyone's back.
  */
 @Controller("api")
 export class ChunksController {
@@ -41,14 +39,5 @@ export class ChunksController {
     @Body() dto: CreateChunksDto,
   ): Promise<Chunk[]> {
     return this.chunks.createMany(projectId, dto.texts);
-  }
-
-  @Delete("projects/:projectId/chunks/:id")
-  @HttpCode(204)
-  remove(
-    @Param("projectId", ParseUUIDPipe) projectId: string,
-    @Param("id", ParseUUIDPipe) id: string,
-  ): Promise<void> {
-    return this.chunks.remove(projectId, id);
   }
 }

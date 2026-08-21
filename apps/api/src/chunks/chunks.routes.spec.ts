@@ -13,7 +13,6 @@ const chunks = {
   listByProject: vi
     .fn<(projectId: string) => Promise<Chunk[]>>()
     .mockResolvedValue([]),
-  remove: vi.fn<(projectId: string, id: string) => Promise<void>>(),
 };
 
 const PROJECT_ID = "8f1a5c62-0f7a-4a3e-9d4e-6c1b2a3d4e5f";
@@ -42,16 +41,16 @@ describe("chunk routes", () => {
     await app.close();
   });
 
-  it("offers no way to edit a chunk in place", async () => {
-    const patched = await call()
-      .patch(`/api/projects/${PROJECT_ID}/chunks/${CHUNK_ID}`)
-      .send({ text: "rewritten" });
-    const replaced = await call()
-      .put(`/api/projects/${PROJECT_ID}/chunks/${CHUNK_ID}`)
-      .send({ text: "rewritten" });
+  it("offers no way to change or remove a chunk once written", async () => {
+    const path = `/api/projects/${PROJECT_ID}/chunks/${CHUNK_ID}`;
+
+    const patched = await call().patch(path).send({ text: "rewritten" });
+    const replaced = await call().put(path).send({ text: "rewritten" });
+    const deleted = await call().delete(path);
 
     expect(patched.status).toBe(404);
     expect(replaced.status).toBe(404);
+    expect(deleted.status).toBe(404);
   });
 
   it("takes a whole sheet already cut into chunks", async () => {
@@ -66,16 +65,5 @@ describe("chunk routes", () => {
       "A rule.",
       "Another rule.",
     ]);
-  });
-
-  it("deletes a chunk for good", async () => {
-    chunks.remove.mockResolvedValue(undefined);
-
-    const response = await call().delete(
-      `/api/projects/${PROJECT_ID}/chunks/${CHUNK_ID}`,
-    );
-
-    expect(response.status).toBe(204);
-    expect(chunks.remove).toHaveBeenCalledWith(PROJECT_ID, CHUNK_ID);
   });
 });
