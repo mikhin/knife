@@ -1,15 +1,21 @@
 @import "tailwindcss";
 
+/*
+ * Wenge and lamplight: dark wood, a warm bulb, nothing shouting. Reading
+ * requirements is dull work and the screen should not add to it, so no
+ * colour here is a warning. The three checks are told apart by warmth
+ * instead: rust for a repeat, ochre for water, moss for a chunk on its own.
+ */
 @theme {
-  --color-canvas: #14161b;
-  --color-panel: #1b1e25;
-  --color-line: #2a2f3a;
-  --color-ink: #dfe3ec;
-  --color-faint: #8b93a5;
-  --color-accent: #5b8def;
-  --color-dup: #e0603a;
-  --color-water: #8f6bd6;
-  --color-hang: #7a7f8c;
+  --color-canvas: #221a15;
+  --color-panel: #2b211a;
+  --color-line: #3f3125;
+  --color-ink: #e8dac6;
+  --color-faint: #9a8770;
+  --color-accent: #c08f52;
+  --color-dup: #bf6b45;
+  --color-water: #b8944e;
+  --color-hang: #869072;
 }
 
 @layer base {
