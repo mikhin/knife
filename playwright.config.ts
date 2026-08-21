@@ -1,7 +1,16 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const WEB_URL = process.env.WEB_URL ?? "http://localhost:5173";
-const API_URL = process.env.API_URL ?? "http://localhost:3000";
+/**
+ * The suite runs on its own ports and its own database, so it neither collides
+ * with a dev session nor leaves chunks behind in a real universe.
+ */
+const WEB_PORT = process.env.E2E_WEB_PORT ?? "5273";
+const API_PORT = process.env.E2E_API_PORT ?? "3100";
+const WEB_URL = `http://localhost:${WEB_PORT}`;
+const API_URL = `http://localhost:${API_PORT}`;
+const DATABASE_URL =
+  process.env.E2E_DATABASE_URL ??
+  "postgres://knife:knife@localhost:5433/knife_e2e";
 
 export default defineConfig({
   expect: { timeout: 15000 },
@@ -16,14 +25,17 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: "pnpm --filter @knife/api dev",
-      reuseExistingServer: !process.env.CI,
+      command:
+        "node tests/prepare-database.mts && pnpm --filter @knife/api dev",
+      env: { DATABASE_URL, PORT: API_PORT },
+      reuseExistingServer: false,
       timeout: 120000,
       url: `${API_URL}/api/projects`,
     },
     {
       command: "pnpm --filter @knife/web dev",
-      reuseExistingServer: !process.env.CI,
+      env: { API_URL, WEB_PORT },
+      reuseExistingServer: false,
       timeout: 120000,
       url: WEB_URL,
     },

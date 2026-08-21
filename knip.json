@@ -12,9 +12,12 @@
       "entry": ["src/workers/*.ts"],
       "project": "src/**/*.{ts,tsx}",
       "ignoreDependencies": ["tailwindcss"]
+    },
+    ".": {
+      "entry": ["tests/prepare-database.mts", "tests/**/*.spec.ts"],
+      "project": "tests/**/*.{ts,mts}"
     }
   },
-  "ignore": ["services/linters/**", "**/.stryker-tmp/**"],
   "ignoreDependencies": [
     "eslint-import-resolver-typescript",
     "eslint-plugin-boundaries",

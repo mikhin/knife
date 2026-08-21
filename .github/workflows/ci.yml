@@ -85,7 +85,8 @@ jobs:
           --health-timeout 3s
           --health-retries 10
     env:
-      DATABASE_URL: postgres://knife:knife@localhost:5433/knife
+      # The suite migrates this database itself; on CI it skips the container.
+      E2E_DATABASE_URL: postgres://knife:knife@localhost:5433/knife
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -96,7 +97,6 @@ jobs:
           node-version-file: ".nvmrc"
           cache: "pnpm"
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @knife/api exec prisma migrate deploy
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm e2e
 

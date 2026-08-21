@@ -287,25 +287,22 @@ test.describe("Вселенная требований, в которой мож
   });
 
   test("Правки нет: API не принимает изменение чанка", async ({ request }) => {
-    const project = await request.post("http://localhost:3000/api/projects", {
+    const project = await request.post("/api/projects", {
       data: { name: `no-edit-${process.pid}-${Date.now()}` },
     });
     const { id } = (await project.json()) as { id: string };
 
-    const created = await request.post(
-      `http://localhost:3000/api/projects/${id}/chunks`,
-      { data: { text: "A shift starts at eight." } },
-    );
+    const created = await request.post(`/api/projects/${id}/chunks`, {
+      data: { text: "A shift starts at eight." },
+    });
     const chunk = (await created.json()) as { id: string };
 
-    const patched = await request.patch(
-      `http://localhost:3000/api/chunks/${chunk.id}`,
-      { data: { text: "rewritten" } },
-    );
-    const replaced = await request.put(
-      `http://localhost:3000/api/chunks/${chunk.id}`,
-      { data: { text: "rewritten" } },
-    );
+    const patched = await request.patch(`/api/chunks/${chunk.id}`, {
+      data: { text: "rewritten" },
+    });
+    const replaced = await request.put(`/api/chunks/${chunk.id}`, {
+      data: { text: "rewritten" },
+    });
 
     expect(patched.status()).toBe(404);
     expect(replaced.status()).toBe(404);
@@ -320,9 +317,7 @@ test.describe("Вселенная требований, в которой мож
     );
 
     // В базе живёт только текст: ни дублей, ни воды, ни связей
-    const stored = await request.get(
-      `http://localhost:3000/api/projects/${projectId}/chunks`,
-    );
+    const stored = await request.get(`/api/projects/${projectId}/chunks`);
     const chunks = (await stored.json()) as Array<Record<string, unknown>>;
     for (const chunk of chunks) {
       expect(Object.keys(chunk).toSorted()).toEqual([
@@ -341,7 +336,7 @@ test.describe("Вселенная требований, в которой мож
   });
 
   test("Вселенная растёт годами", async ({ page, request }) => {
-    const project = await request.post("http://localhost:3000/api/projects", {
+    const project = await request.post("/api/projects", {
       data: { name: `big-${process.pid}-${Date.now()}` },
     });
     const { id } = (await project.json()) as { id: string };
@@ -358,7 +353,7 @@ test.describe("Вселенная требований, в которой мож
 
     // Чанки ложатся кучей и без порядка, так что пачки летят разом.
     const batches = Array.from({ length: texts.length / 1000 }, (_, batch) =>
-      request.post(`http://localhost:3000/api/projects/${id}/chunks/bulk`, {
+      request.post(`/api/projects/${id}/chunks/bulk`, {
         data: { texts: texts.slice(batch * 1000, batch * 1000 + 1000) },
       }),
     );
