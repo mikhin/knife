@@ -36,9 +36,7 @@ export const ChunkInspector = ({
     data-testid="chunk-inspector"
   >
     <div className="flex items-center justify-between gap-2">
-      <span className="text-xs text-faint">
-        arrived {formatDate(chunk.createdAt)}
-      </span>
+      <span className="text-xs text-faint">{formatDate(chunk.createdAt)}</span>
       <button
         className="text-dup hover:border-dup"
         onClick={onDelete}
@@ -110,7 +108,7 @@ export const ChunkInspector = ({
               ) : null}
               {other ? (
                 <span className="text-xs text-faint">
-                  arrived {formatDate(other.createdAt)}
+                  {formatDate(other.createdAt)}
                 </span>
               ) : null}
             </li>

@@ -168,7 +168,7 @@ test.describe("Вселенная требований, в которой мож
     await expect(inspector).toContainText(/\d+%/);
     // И какие слова совпали
     await expect(inspector).toContainText(/shared: .*auditor/);
-    await expect(inspector).toContainText(/arrived \d{4}-\d{2}-\d{2}/);
+    await expect(inspector).toContainText(/\d{4}-\d{2}-\d{2}/);
   });
 
   test("Вижу воду", async ({ page }) => {
