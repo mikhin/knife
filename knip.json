@@ -9,7 +9,7 @@
       "project": "src/**/*.ts"
     },
     "apps/web": {
-      "entry": ["src/workers/*.ts"],
+      "entry": ["index.html", "src/workers/*.ts"],
       "project": "src/**/*.{ts,tsx}",
       "ignoreDependencies": ["tailwindcss"]
     },
