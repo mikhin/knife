@@ -1,4 +1,4 @@
-import { type ChangeEvent, type JSX, useState } from "react";
+import { type ChangeEvent, type JSX, useEffect, useState } from "react";
 import { detectSourceFormat } from "@/lib/detect-source-format";
 import { attempt } from "@/stores/failure-store";
 import { addText } from "@/stores/universe-store";
@@ -12,8 +12,25 @@ type Props = {
  * project that is open, and next to "Create project" it read as if it would
  * make a new one.
  */
+const NOTE_SHOWN = 5000;
+
 export const FileImport = ({ projectId }: Props): JSX.Element => {
   const [note, setNote] = useState<string | undefined>(undefined);
+
+  /** Said and done: the count answers the click, not the rest of the session. */
+  useEffect(() => {
+    if (note === undefined) {
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      setNote(undefined);
+    }, NOTE_SHOWN);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [note]);
 
   const addFile = async (
     file: File,

@@ -53,7 +53,8 @@ const chunkCount = async (page: Page): Promise<number> => {
 const chunkRow = (page: Page, text: RegExp | string) =>
   page
     .getByTestId("chunk-list")
-    .getByRole("button", { exact: false, name: text });
+    .getByRole("button")
+    .filter({ has: page.getByTestId("chunk-text").filter({ hasText: text }) });
 
 const wordRow = (page: Page, label: RegExp | string) =>
   page.getByTestId("word-list").getByRole("button", { name: label });
@@ -148,7 +149,7 @@ test.describe("Вселенная требований, в которой мож
     // И повтор между строкой таблицы и абзацем показан как дубль
     await row.click();
     const inspector = page.getByTestId("chunk-inspector");
-    await expect(inspector).toContainText("Duplicates");
+    await expect(inspector).toContainText("Said twice");
     await expect(inspector).toContainText(
       "The night auditor closes the shift report before midnight.",
     );
@@ -167,11 +168,20 @@ test.describe("Вселенная требований, в которой мож
     ).click();
 
     const inspector = page.getByTestId("chunk-inspector");
+    // Повтор назван повтором, а не просто общими словами
+    const repeats = inspector.locator("section", {
+      hasText: "Said twice",
+    });
     // Насколько похожи
-    await expect(inspector).toContainText(/\d+%/);
-    // И какие слова совпали
-    await expect(inspector).toContainText(/shared: .*auditor/);
-    await expect(inspector).toContainText(/\d{4}-\d{2}-\d{2}/);
+    await expect(repeats).toContainText(/\d+%/);
+    // И какие слова совпали — видно прямо в тексте соседа
+    await expect(
+      repeats
+        .locator("mark")
+        .filter({ hasText: /auditor/i })
+        .first(),
+    ).toBeVisible();
+    await expect(repeats).toContainText(/\d{4}-\d{2}-\d{2}/);
   });
 
   test("Вижу воду", async ({ page }) => {
@@ -179,9 +189,7 @@ test.describe("Вселенная требований, в которой мож
     await bringSheet(page, SHEET);
 
     const watery = chunkRow(page, "It should be noted that this is basically");
-    await expect(
-      watery.locator("xpath=../span").getByText("water"),
-    ).toBeVisible();
+    await expect(watery.locator("em").getByText("water")).toBeVisible();
 
     await watery.click();
     const inspector = page.getByTestId("chunk-inspector");
@@ -195,9 +203,7 @@ test.describe("Вселенная требований, в которой мож
     await bringSheet(page, SHEET);
 
     const lonely = chunkRow(page, "Peacocks roam the orangery unsupervised.");
-    await expect(
-      lonely.locator("xpath=../span").getByText("hanging"),
-    ).toBeVisible();
+    await expect(lonely.locator("em").getByText("hanging")).toBeVisible();
 
     await lonely.click();
     await expect(page.getByTestId("chunk-inspector")).toContainText("Hanging");
@@ -412,12 +418,12 @@ test.describe("Вселенная требований, в которой мож
 
     // А вердикты считаются на месте — и после перезагрузки считаются заново
     const wet = chunkRow(page, "It should be noted that this is basically");
-    await expect(wet.locator("xpath=../span").getByText("water")).toBeVisible();
+    await expect(wet.locator("em").getByText("water")).toBeVisible();
 
     await page.reload();
     await expect(
       chunkRow(page, "It should be noted that this is basically")
-        .locator("xpath=../span")
+        .locator("em")
         .getByText("water"),
     ).toBeVisible();
   });
