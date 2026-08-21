@@ -87,7 +87,12 @@
         "pattern": "apps/web/src/pages",
         "partialMatch": true
       }
-    ]
+    ],
+    "import/resolver": {
+      "typescript": {
+        "project": ["apps/web/tsconfig.json", "apps/api/tsconfig.json"]
+      }
+    }
   },
   "rules": {
     "typescript/consistent-type-definitions": ["error", "type"],
@@ -133,14 +138,6 @@
       {
         "type": "natural",
         "order": "asc"
-      }
-    ],
-    "no-relative-import-paths/no-relative-import-paths": [
-      "error",
-      {
-        "rootDir": "src",
-        "prefix": "@",
-        "allowSameFolder": false
       }
     ],
     "react/react-in-jsx-scope": "off",
@@ -296,12 +293,29 @@
       "files": ["apps/web/src/**/*.{ts,tsx}"],
       "rules": {
         "react/rules-of-hooks": "error",
-        "react/exhaustive-deps": "warn"
+        "react/exhaustive-deps": "warn",
+        "no-relative-import-paths/no-relative-import-paths": [
+          "error",
+          {
+            "rootDir": "apps/web/src",
+            "prefix": "@",
+            "allowSameFolder": false
+          }
+        ]
       }
     },
     {
       "files": ["apps/api/src/**/*.ts"],
-      "rules": {}
+      "rules": {
+        "no-relative-import-paths/no-relative-import-paths": [
+          "error",
+          {
+            "rootDir": "apps/api/src",
+            "prefix": "@",
+            "allowSameFolder": false
+          }
+        ]
+      }
     },
     {
       "files": ["**/*.spec.{ts,tsx}"],
