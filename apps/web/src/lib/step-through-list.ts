@@ -12,7 +12,11 @@ export const stepThroughList = (row: HTMLElement, key: string): boolean => {
     return false;
   }
 
-  const rows = [...(row.closest("ul")?.querySelectorAll("button") ?? [])];
+  const rows = [
+    ...(row
+      .closest("ul")
+      ?.querySelectorAll<HTMLButtonElement>("button[data-row]") ?? []),
+  ];
   const next = rows[rows.indexOf(row as HTMLButtonElement) + step];
   if (next === undefined) {
     return true;

@@ -1,5 +1,7 @@
+import type { Project } from "@knife/contract";
 import { useStore } from "@nanostores/react";
 import { type JSX, type ReactNode, useEffect, useState } from "react";
+import { BinIcon, PencilIcon } from "@/components/icons";
 import { ListRow } from "@/components/list-row";
 import { DeleteDialog, NameDialog } from "@/components/project-dialogs";
 import { attempt } from "@/stores/failure-store";
@@ -20,7 +22,12 @@ type Props = {
   open: boolean;
 };
 
-type Asking = "delete" | "new" | "none" | "rename";
+type Asking =
+  | { kind: "delete" | "rename"; project: Project }
+  | { kind: "new" | "none" };
+
+/** Small enough to sit on the row without crowding the name off it. */
+const ROW_ACTION = "shrink-0 border-transparent px-1 py-1 text-faint";
 
 const SECTION = "border-t border-line p-3";
 
@@ -32,11 +39,10 @@ export const ProjectSidebar = ({
   const projects = useStore($projects);
   const currentId = useStore($currentProjectId);
   const chunks = useStore($chunks);
-  const [asking, setAsking] = useState<Asking>("none");
+  const [asking, setAsking] = useState<Asking>({ kind: "none" });
 
-  const current = projects.find((project) => project.id === currentId);
   const close = (): void => {
-    setAsking("none");
+    setAsking({ kind: "none" });
   };
 
   /** Escape closes the panel, the same as it closes a dialog. */
@@ -69,7 +75,7 @@ export const ProjectSidebar = ({
       ) : null}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-20 flex w-56 flex-col border-r border-line bg-canvas transition-transform duration-150 ${
+        className={`fixed inset-y-0 left-0 z-20 flex w-64 flex-col border-r border-line bg-canvas transition-transform duration-150 ${
           open ? "translate-x-0" : "invisible -translate-x-full"
         }`}
         data-testid="project-sidebar"
@@ -81,7 +87,7 @@ export const ProjectSidebar = ({
           </h2>
           <button
             onClick={() => {
-              setAsking("new");
+              setAsking({ kind: "new" });
             }}
             type="button"
           >
@@ -98,6 +104,32 @@ export const ProjectSidebar = ({
             <ul className="flex flex-col gap-1" data-testid="project-list">
               {projects.map((project) => (
                 <ListRow
+                  actions={
+                    <>
+                      <button
+                        aria-label="Rename"
+                        className={ROW_ACTION}
+                        onClick={() => {
+                          setAsking({ kind: "rename", project });
+                        }}
+                        title="Rename"
+                        type="button"
+                      >
+                        <PencilIcon />
+                      </button>
+                      <button
+                        aria-label="Delete"
+                        className={`${ROW_ACTION} hover:border-dup hover:text-dup`}
+                        onClick={() => {
+                          setAsking({ kind: "delete", project });
+                        }}
+                        title="Delete"
+                        type="button"
+                      >
+                        <BinIcon />
+                      </button>
+                    </>
+                  }
                   className="truncate"
                   isSelected={project.id === currentId}
                   key={project.id}
@@ -113,32 +145,10 @@ export const ProjectSidebar = ({
           )}
         </div>
 
-        {current ? (
-          <div className={`${SECTION} flex gap-2`}>
-            <button
-              onClick={() => {
-                setAsking("rename");
-              }}
-              type="button"
-            >
-              Rename
-            </button>
-            <button
-              className="text-dup hover:border-dup"
-              onClick={() => {
-                setAsking("delete");
-              }}
-              type="button"
-            >
-              Delete
-            </button>
-          </div>
-        ) : null}
-
         {children ? <div className={SECTION}>{children}</div> : null}
       </aside>
 
-      {asking === "new" ? (
+      {asking.kind === "new" ? (
         <NameDialog
           action="Create"
           initial=""
@@ -151,26 +161,26 @@ export const ProjectSidebar = ({
         />
       ) : null}
 
-      {current && asking === "rename" ? (
+      {asking.kind === "rename" ? (
         <NameDialog
           action="Save"
-          initial={current.name}
+          initial={asking.project.name}
           onClose={close}
           onSubmit={(name) => {
-            attempt(renameProject(current.id, name));
+            attempt(renameProject(asking.project.id, name));
           }}
           title="Rename project"
         />
       ) : null}
 
-      {current && asking === "delete" ? (
+      {asking.kind === "delete" ? (
         <DeleteDialog
-          chunkCount={chunks.length}
+          chunkCount={asking.project.id === currentId ? chunks.length : 0}
           onClose={close}
           onDelete={() => {
-            attempt(deleteProject(current.id));
+            attempt(deleteProject(asking.project.id));
           }}
-          project={current}
+          project={asking.project}
         />
       ) : null}
     </>

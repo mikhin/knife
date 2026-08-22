@@ -18,6 +18,10 @@ const openProjects = async (page: Page): Promise<void> => {
   ).toBeVisible();
 };
 
+/** Строка проекта в списке — вместе с кнопками, которые на ней живут. */
+const projectRow = (page: Page, name: string) =>
+  page.getByTestId("project-list").locator("li").filter({ hasText: name });
+
 const createProject = async (page: Page, name: string): Promise<void> => {
   await openProjects(page);
   await page.getByRole("button", { name: "New project" }).click();
@@ -58,7 +62,9 @@ test.describe("Проекты заводятся, переименовывают
     await expect(page.getByTestId("chunk-list")).toContainText("night auditor");
 
     await openProjects(page);
-    await page.getByRole("button", { name: "Rename" }).click();
+    await projectRow(page, before)
+      .getByRole("button", { name: "Rename" })
+      .click();
     await page.getByLabel("Rename project").fill(after);
     await page.getByRole("button", { name: "Save" }).click();
 
@@ -75,7 +81,9 @@ test.describe("Проекты заводятся, переименовывают
     await createProject(page, mine);
 
     await openProjects(page);
-    await page.getByRole("button", { name: "Rename" }).click();
+    await projectRow(page, mine)
+      .getByRole("button", { name: "Rename" })
+      .click();
     await page.getByLabel("Rename project").fill(taken);
     await page.getByRole("button", { name: "Save" }).click();
 
@@ -96,9 +104,10 @@ test.describe("Проекты заводятся, переименовывают
     await page.getByRole("button", { exact: true, name: "Add" }).click();
     await expect(page.getByTestId("chunk-list")).toContainText("night auditor");
 
-    const sidebar = page.getByTestId("project-sidebar");
     await openProjects(page);
-    await sidebar.getByRole("button", { name: "Delete" }).click();
+    await projectRow(page, name)
+      .getByRole("button", { name: "Delete" })
+      .click();
     const asked = page.getByRole("dialog");
     await expect(asked).toContainText(/Delete .* and its 1 chunks/);
 
@@ -107,7 +116,9 @@ test.describe("Проекты заводятся, переименовывают
     await expect(page.getByTestId("open-project")).toHaveText(name);
 
     await openProjects(page);
-    await sidebar.getByRole("button", { name: "Delete" }).click();
+    await projectRow(page, name)
+      .getByRole("button", { name: "Delete" })
+      .click();
     await page
       .getByRole("dialog")
       .getByRole("button", { name: "Delete" })

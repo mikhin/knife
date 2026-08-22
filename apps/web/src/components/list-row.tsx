@@ -8,6 +8,8 @@ import {
 import { stepThroughList } from "@/lib/step-through-list";
 
 type Props = {
+  /** Buttons that act on this row, standing next to it rather than inside. */
+  actions?: ReactNode;
   children: ReactNode;
   className: string;
   isSelected: boolean;
@@ -20,6 +22,7 @@ type Props = {
  * are the same row with different things written in it.
  */
 export const ListRow = ({
+  actions,
   children,
   className,
   isSelected,
@@ -35,10 +38,10 @@ export const ListRow = ({
   }, [isSelected]);
 
   return (
-    <li className="min-w-0">
+    <li className="group flex min-w-0 items-center gap-1">
       <button
         aria-current={isSelected}
-        className={`w-full rounded-md border bg-transparent px-2 py-1 text-left ${
+        className={`min-w-0 flex-1 rounded-md border bg-transparent px-2 py-1 text-left ${
           isSelected ? "border-accent" : "border-transparent"
         } ${className}`}
         onClick={onOpen}
@@ -47,11 +50,13 @@ export const ListRow = ({
             event.preventDefault();
           }
         }}
+        data-row=""
         ref={row}
         type="button"
       >
         {children}
       </button>
+      {actions}
     </li>
   );
 };

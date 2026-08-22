@@ -5,17 +5,24 @@ import { stepThroughList } from "@/lib/step-through-list";
 const rows = (): HTMLButtonElement[] => {
   document.body.innerHTML = `
     <ul>
-      <li><button type="button">one</button></li>
-      <li><button type="button">two</button></li>
-      <li><button type="button">three</button></li>
+      <li><button data-row type="button">one</button><button type="button">edit</button></li>
+      <li><button data-row type="button">two</button><button type="button">edit</button></li>
+      <li><button data-row type="button">three</button><button type="button">edit</button></li>
       <li>4 more not listed</li>
     </ul>`;
-  return [...document.querySelectorAll("button")];
+  return [...document.querySelectorAll<HTMLButtonElement>("button[data-row]")];
 };
 
 const focused = (): string => document.activeElement?.textContent ?? "";
 
 describe("stepThroughList", () => {
+  it("walks the rows, not the buttons that act on them", () => {
+    const list = rows();
+    stepThroughList(list[0] as HTMLElement, "ArrowDown");
+
+    expect(focused()).toBe("two");
+  });
+
   it("opens the row below and takes it with the focus", () => {
     const list = rows();
     const opened = vi.fn<() => void>();
