@@ -7,6 +7,7 @@ type Props = {
   chunks: Chunk[];
   danglingIds: ReadonlySet<string>;
   duplicateIds: ReadonlySet<string>;
+  noteCounts: ReadonlyMap<string, number>;
   onOpen: (id: string) => void;
   selectedId: string | undefined;
   spansByChunk: Map<string, Array<{ end: number; start: number }>>;
@@ -19,6 +20,7 @@ export const ChunkList = ({
   chunks,
   danglingIds,
   duplicateIds,
+  noteCounts,
   onOpen,
   selectedId,
   spansByChunk,
@@ -51,6 +53,11 @@ export const ChunkList = ({
           <span className="flex shrink-0 gap-1 pt-0.5">
             {duplicateIds.has(chunk.id) ? (
               <em className={`${TAG} text-dup`}>dup</em>
+            ) : null}
+            {noteCounts.get(chunk.id) ? (
+              <em className={`${TAG} text-note`}>
+                notes {noteCounts.get(chunk.id)}
+              </em>
             ) : null}
             {danglingIds.has(chunk.id) ? (
               <em className={`${TAG} text-hang`}>hanging</em>

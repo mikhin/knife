@@ -14,7 +14,11 @@ import { RepeatLevel } from "@/components/repeat-level";
 import { WordInspector } from "@/components/word-inspector";
 import { WordList } from "@/components/word-list";
 import { attempt } from "@/stores/failure-store";
-import { $lintReport, checkLinters } from "@/stores/lint-store";
+import {
+  $lintReport,
+  $notesByChunk,
+  checkLinters,
+} from "@/stores/lint-store";
 import {
   $currentProjectId,
   $projects,
@@ -69,6 +73,7 @@ export const UniversePage = (): JSX.Element => {
   const wordOrder = useStore($wordOrder);
   const searchHits = useStore($searchHits);
   const lintReport = useStore($lintReport);
+  const notesByChunk = useStore($notesByChunk);
 
   useEffect(() => {
     attempt(loadProjects());
@@ -94,6 +99,8 @@ export const UniversePage = (): JSX.Element => {
     [duplicates],
   );
 
+  const notedIds = useMemo(() => new Set(notesByChunk.keys()), [notesByChunk]);
+
   const listedChunks = useMemo(
     () =>
       searchHits === undefined
@@ -113,6 +120,7 @@ export const UniversePage = (): JSX.Element => {
     const marks = {
       dangling: danglingIds,
       duplicates: duplicateIds,
+      noted: notedIds,
     };
 
     return sortChunks(
@@ -120,7 +128,14 @@ export const UniversePage = (): JSX.Element => {
       chunkOrder,
       marks,
     );
-  }, [chunkFilter, chunkOrder, danglingIds, duplicateIds, listedChunks]);
+  }, [
+    chunkFilter,
+    chunkOrder,
+    danglingIds,
+    duplicateIds,
+    listedChunks,
+    notedIds,
+  ]);
 
   const selectedChunk = selectedChunkId
     ? chunkById.get(selectedChunkId)
@@ -203,6 +218,7 @@ export const UniversePage = (): JSX.Element => {
                 chunks={shownChunks}
                 danglingIds={danglingIds}
                 duplicateIds={duplicateIds}
+                noteCounts={notesByChunk}
                 onOpen={selectChunk}
                 selectedId={selectedChunkId}
                 spansByChunk={spansByChunk}
@@ -222,6 +238,7 @@ export const UniversePage = (): JSX.Element => {
                     options={[
                       { label: "All", value: "all" },
                       { label: "Repeats", value: "duplicates" },
+                      { label: "Notes", value: "noted" },
                       { label: "Hanging", value: "dangling" },
                     ]}
                     value={chunkFilter}

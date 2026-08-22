@@ -7,7 +7,12 @@ export const CHUNK_ORDERS = [
 
 export const WORD_ORDERS = ["common", "rare", "alphabetical"] as const;
 
-export const CHUNK_FILTERS = ["all", "duplicates", "dangling"] as const;
+export const CHUNK_FILTERS = [
+  "all",
+  "duplicates",
+  "noted",
+  "dangling",
+] as const;
 
 export type ChunkOrder = (typeof CHUNK_ORDERS)[number];
 

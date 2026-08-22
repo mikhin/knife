@@ -22,6 +22,7 @@ const chunks = [
 const noMarks = {
   dangling: new Set<string>(),
   duplicates: new Set<string>(),
+  noted: new Set<string>(),
 };
 
 describe("sortChunks", () => {
@@ -47,11 +48,40 @@ describe("sortChunks", () => {
     const flagged = sortChunks(chunks, "problems", {
       dangling: new Set(["newest"]),
       duplicates: new Set(["middle"]),
+      noted: new Set<string>(),
     });
 
     expect(flagged.map((found) => found.id)).toEqual([
       "middle",
       "newest",
+      "oldest",
+    ]);
+  });
+
+  it("puts a linter note above a chunk standing on its own", () => {
+    const flagged = sortChunks(chunks, "problems", {
+      dangling: new Set(["oldest"]),
+      duplicates: new Set<string>(),
+      noted: new Set(["newest"]),
+    });
+
+    expect(flagged.map((found) => found.id)).toEqual([
+      "newest",
+      "oldest",
+      "middle",
+    ]);
+  });
+
+  it("puts a repeat the linters also wrote on ahead of a plain repeat", () => {
+    const flagged = sortChunks(chunks, "problems", {
+      dangling: new Set<string>(),
+      duplicates: new Set(["middle", "newest"]),
+      noted: new Set(["newest"]),
+    });
+
+    expect(flagged.map((found) => found.id)).toEqual([
+      "newest",
+      "middle",
       "oldest",
     ]);
   });

@@ -13,6 +13,7 @@ const universe = [chunk("one"), chunk("two"), chunk("three")];
 const marks = {
   dangling: new Set<string>(),
   duplicates: new Set(["one", "two"]),
+  noted: new Set(["three"]),
 };
 
 const ids = (kept: Chunk[]): string[] => kept.map((one) => one.id);
@@ -31,6 +32,10 @@ describe("filterChunks", () => {
       "one",
       "two",
     ]);
+  });
+
+  it("keeps only what the linters wrote on", () => {
+    expect(ids(filterChunks(universe, "noted", marks))).toEqual(["three"]);
   });
 
   it("says so plainly when a check flagged nothing", () => {

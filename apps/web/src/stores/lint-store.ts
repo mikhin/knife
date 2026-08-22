@@ -1,4 +1,4 @@
-import { atom } from "nanostores";
+import { atom, computed } from "nanostores";
 import { lintApi } from "@/api/lint-api";
 import type { Chunk } from "@knife/contract";
 import type { LintHealth, LintReport } from "@knife/contract";
@@ -71,3 +71,18 @@ export const runLinters = async (chunks: Chunk[]): Promise<void> => {
     $lintRunning.set(false);
   }
 };
+
+/**
+ * How many findings sit on each chunk. The list says the count before a chunk
+ * is opened — one nitpick and ten are not the same trouble — while the filter
+ * and the order need no more than the ids.
+ */
+export const $notesByChunk = computed($lintReport, (report) => {
+  const counts = new Map<string, number>();
+
+  for (const finding of report?.findings ?? []) {
+    counts.set(finding.chunkId, (counts.get(finding.chunkId) ?? 0) + 1);
+  }
+
+  return counts;
+});
