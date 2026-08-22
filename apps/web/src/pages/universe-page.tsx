@@ -14,11 +14,7 @@ import { RepeatLevel } from "@/components/repeat-level";
 import { WordInspector } from "@/components/word-inspector";
 import { WordList } from "@/components/word-list";
 import { attempt } from "@/stores/failure-store";
-import {
-  $lintReport,
-  $notesByChunk,
-  checkLinters,
-} from "@/stores/lint-store";
+import { $lintReport, $notesByChunk, checkLinters } from "@/stores/lint-store";
 import {
   $currentProjectId,
   $projects,
