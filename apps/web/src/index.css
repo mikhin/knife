@@ -7,15 +7,15 @@
  * instead: rust for a repeat, ochre for water, moss for a chunk on its own.
  */
 @theme {
-  --color-canvas: #221a15;
-  --color-panel: #2b211a;
-  --color-line: #3f3125;
-  --color-ink: #e8dac6;
-  --color-faint: #9a8770;
-  --color-accent: #c08f52;
-  --color-dup: #bf6b45;
-  --color-water: #b8944e;
-  --color-hang: #869072;
+  --color-canvas: #181210;
+  --color-panel: #261c16;
+  --color-line: #4d3a2a;
+  --color-ink: #f2e7d6;
+  --color-faint: #b49d81;
+  --color-accent: #d3a463;
+  --color-dup: #d47c50;
+  --color-water: #c9a254;
+  --color-hang: #94a17d;
 }
 
 @layer base {
