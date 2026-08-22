@@ -9,12 +9,14 @@ test.describe("Когда что-то не получилось", () => {
     const name = `taken-${process.pid}-${Date.now()}`;
 
     await page.goto("/");
-    await page.getByPlaceholder("New project name").fill(name);
-    await page.getByRole("button", { name: "Create project" }).click();
-    await expect(page.getByTestId("project-picker")).toContainText(name);
+    await page.getByRole("button", { name: "New project" }).click();
+    await page.getByLabel("New project").fill(name);
+    await page.getByRole("button", { exact: true, name: "Create" }).click();
+    await expect(page.getByTestId("project-list")).toContainText(name);
 
-    await page.getByPlaceholder("New project name").fill(name);
-    await page.getByRole("button", { name: "Create project" }).click();
+    await page.getByRole("button", { name: "New project" }).click();
+    await page.getByLabel("New project").fill(name);
+    await page.getByRole("button", { exact: true, name: "Create" }).click();
 
     await expect(page.getByTestId("failure")).toContainText("already exists");
   });
@@ -23,9 +25,10 @@ test.describe("Когда что-то не получилось", () => {
     const name = `stale-${process.pid}-${Date.now()}`;
 
     await page.goto("/");
-    await page.getByPlaceholder("New project name").fill(name);
-    await page.getByRole("button", { name: "Create project" }).click();
-    await expect(page.getByTestId("project-picker")).toContainText(name);
+    await page.getByRole("button", { name: "New project" }).click();
+    await page.getByLabel("New project").fill(name);
+    await page.getByRole("button", { exact: true, name: "Create" }).click();
+    await expect(page.getByTestId("project-list")).toContainText(name);
 
     await page
       .getByPlaceholder("Write a chunk, or paste a whole sheet")
@@ -55,8 +58,9 @@ test.describe("Когда что-то не получилось", () => {
     const name = `empty-${process.pid}-${Date.now()}`;
 
     await page.goto("/");
-    await page.getByPlaceholder("New project name").fill(name);
-    await page.getByRole("button", { name: "Create project" }).click();
+    await page.getByRole("button", { name: "New project" }).click();
+    await page.getByLabel("New project").fill(name);
+    await page.getByRole("button", { exact: true, name: "Create" }).click();
 
     await expect(
       page.getByTestId("repeat-level").getByRole("button", {

@@ -48,3 +48,13 @@ export const $chunkFilter = persistentAtom<ChunkFilter>(
 export const setChunkFilter = (filter: ChunkFilter): void => {
   $chunkFilter.set(filter);
 };
+
+/** The sidebar is a place to stand, not a place to live: it folds away. */
+export const $sidebarOpen = persistentAtom<boolean>("knife:sidebar", true, {
+  decode: (stored) => stored !== "closed",
+  encode: (open) => (open ? "open" : "closed"),
+});
+
+export const toggleSidebar = (): void => {
+  $sidebarOpen.set(!$sidebarOpen.get());
+};

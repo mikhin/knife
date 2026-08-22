@@ -26,9 +26,10 @@ const createProject = async (page: Page): Promise<string> => {
   const name = `project-${process.pid}-${projectCount}`;
 
   await page.goto("/");
-  await page.getByPlaceholder("New project name").fill(name);
-  await page.getByRole("button", { name: "Create project" }).click();
-  await expect(page.getByTestId("project-picker")).toContainText(name);
+  await page.getByRole("button", { name: "New project" }).click();
+  await page.getByLabel("New project").fill(name);
+  await page.getByRole("button", { exact: true, name: "Create" }).click();
+  await expect(page.getByTestId("project-list")).toContainText(name);
 
   return name;
 };
@@ -474,8 +475,9 @@ test.describe("Вселенная требований, в которой мож
   });
 
   test("Вселенная растёт годами", async ({ page, request }) => {
+    const name = `big-${process.pid}-${Date.now()}`;
     const project = await request.post("/api/projects", {
-      data: { name: `big-${process.pid}-${Date.now()}` },
+      data: { name },
     });
     const { id } = (await project.json()) as { id: string };
 
@@ -498,7 +500,10 @@ test.describe("Вселенная требований, в которой мож
     await Promise.all(batches);
 
     await page.goto("/");
-    await page.getByTestId("project-picker").selectOption(id);
+    await page
+      .getByTestId("project-list")
+      .getByRole("button", { name })
+      .click();
 
     const started = Date.now();
     await expect(

@@ -6,9 +6,10 @@ import { expect, test } from "@playwright/test";
  * «правки нет» относится к чанкам, а не к тому, как называется их вселенная.
  */
 const createProject = async (page: Page, name: string): Promise<void> => {
-  await page.getByPlaceholder("New project name").fill(name);
-  await page.getByRole("button", { name: "Create project" }).click();
-  await expect(page.getByTestId("project-picker")).toContainText(name);
+  await page.getByRole("button", { name: "New project" }).click();
+  await page.getByLabel("New project").fill(name);
+  await page.getByRole("button", { exact: true, name: "Create" }).click();
+  await expect(page.getByTestId("project-list")).toContainText(name);
 };
 
 test.describe("Проекты заводятся, переименовываются и удаляются", () => {
@@ -18,8 +19,10 @@ test.describe("Проекты заводятся, переименовывают
     await page.goto("/");
     await createProject(page, name);
 
-    await expect(page.getByTestId("project-picker")).toHaveValue(/.+/);
-    await expect(page.getByTestId("project-picker")).toContainText(name);
+    await expect(
+      page.getByTestId("project-list").locator('[aria-current="true"]'),
+    ).toContainText(name);
+    await expect(page.getByTestId("project-list")).toContainText(name);
   });
 
   test("Проект можно переименовать, чанки остаются на месте", async ({
@@ -38,10 +41,10 @@ test.describe("Проекты заводятся, переименовывают
     await expect(page.getByTestId("chunk-list")).toContainText("night auditor");
 
     await page.getByRole("button", { name: "Rename" }).click();
-    await page.getByLabel("New name for this project").fill(after);
+    await page.getByLabel("Rename project").fill(after);
     await page.getByRole("button", { name: "Save" }).click();
 
-    await expect(page.getByTestId("project-picker")).toContainText(after);
+    await expect(page.getByTestId("project-list")).toContainText(after);
     await expect(page.getByTestId("chunk-list")).toContainText("night auditor");
   });
 
@@ -54,11 +57,11 @@ test.describe("Проекты заводятся, переименовывают
     await createProject(page, mine);
 
     await page.getByRole("button", { name: "Rename" }).click();
-    await page.getByLabel("New name for this project").fill(taken);
+    await page.getByLabel("Rename project").fill(taken);
     await page.getByRole("button", { name: "Save" }).click();
 
     await expect(page.getByTestId("failure")).toContainText("already exists");
-    await expect(page.getByTestId("project-picker")).toContainText(mine);
+    await expect(page.getByTestId("project-list")).toContainText(mine);
   });
 
   test("Удаление спрашивает и говорит, что унесёт с собой", async ({
@@ -74,16 +77,21 @@ test.describe("Проекты заводятся, переименовывают
     await page.getByRole("button", { exact: true, name: "Add" }).click();
     await expect(page.getByTestId("chunk-list")).toContainText("night auditor");
 
-    await page.getByRole("button", { name: "Delete" }).click();
-    await expect(page.getByText(/Delete .* and its 1 chunks/)).toBeVisible();
+    const sidebar = page.getByTestId("project-sidebar");
+    await sidebar.getByRole("button", { name: "Delete" }).click();
+    const asked = page.getByRole("dialog");
+    await expect(asked).toContainText(/Delete .* and its 1 chunks/);
 
     // Передумать можно, и тогда ничего не происходит
-    await page.getByRole("button", { name: "Keep it" }).click();
-    await expect(page.getByTestId("project-picker")).toContainText(name);
+    await asked.getByRole("button", { name: "Cancel" }).click();
+    await expect(page.getByTestId("project-list")).toContainText(name);
 
-    await page.getByRole("button", { name: "Delete" }).click();
-    await page.getByRole("button", { name: "Yes, delete" }).click();
+    await sidebar.getByRole("button", { name: "Delete" }).click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Delete" })
+      .click();
 
-    await expect(page.getByTestId("project-picker")).not.toContainText(name);
+    await expect(page.getByTestId("project-list")).not.toContainText(name);
   });
 });
