@@ -20,16 +20,30 @@ const HANDBOOK = path.join(FIXTURES, "handbook.txt");
 
 let projectCount = 0;
 
+/** Панель проектов лежит поверх вселенной и по умолчанию убрана. */
+const openProjects = async (page: Page): Promise<void> => {
+  const sidebar = page.getByTestId("project-sidebar");
+  if (
+    !(await sidebar.getByRole("button", { name: "New project" }).isVisible())
+  ) {
+    await page.getByRole("button", { name: "Projects" }).click();
+  }
+  await expect(
+    sidebar.getByRole("button", { name: "New project" }),
+  ).toBeVisible();
+};
+
 /** Заводит проект — папку, вселенная в нём появится следом. */
 const createProject = async (page: Page): Promise<string> => {
   projectCount += 1;
   const name = `project-${process.pid}-${projectCount}`;
 
   await page.goto("/");
+  await openProjects(page);
   await page.getByRole("button", { name: "New project" }).click();
   await page.getByLabel("New project").fill(name);
   await page.getByRole("button", { exact: true, name: "Create" }).click();
-  await expect(page.getByTestId("project-list")).toContainText(name);
+  await expect(page.getByTestId("open-project")).toHaveText(name);
 
   return name;
 };
@@ -475,6 +489,9 @@ test.describe("Вселенная требований, в которой мож
   });
 
   test("Вселенная растёт годами", async ({ page, request }) => {
+    // Четыре тысячи чанков: единственный сценарий, которому нужно больше
+    test.setTimeout(120000);
+
     const name = `big-${process.pid}-${Date.now()}`;
     const project = await request.post("/api/projects", {
       data: { name },
@@ -500,6 +517,7 @@ test.describe("Вселенная требований, в которой мож
     await Promise.all(batches);
 
     await page.goto("/");
+    await openProjects(page);
     await page
       .getByTestId("project-list")
       .getByRole("button", { name })

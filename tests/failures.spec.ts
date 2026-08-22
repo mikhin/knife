@@ -1,19 +1,35 @@
+import type { Page } from "@playwright/test";
 import { expect, test } from "@playwright/test";
 
 /**
  * Не сценарии из требований, а страховка от тихого отказа: действие, которое
  * не удалось, обязано сказать об этом, а не выглядеть как сработавшее.
  */
+/** Панель проектов лежит поверх вселенной и по умолчанию убрана. */
+const openProjects = async (page: Page): Promise<void> => {
+  const sidebar = page.getByTestId("project-sidebar");
+  if (
+    !(await sidebar.getByRole("button", { name: "New project" }).isVisible())
+  ) {
+    await page.getByRole("button", { name: "Projects" }).click();
+  }
+  await expect(
+    sidebar.getByRole("button", { name: "New project" }),
+  ).toBeVisible();
+};
+
 test.describe("Когда что-то не получилось", () => {
   test("Занятое имя проекта не проглатывается молча", async ({ page }) => {
     const name = `taken-${process.pid}-${Date.now()}`;
 
     await page.goto("/");
+    await openProjects(page);
     await page.getByRole("button", { name: "New project" }).click();
     await page.getByLabel("New project").fill(name);
     await page.getByRole("button", { exact: true, name: "Create" }).click();
-    await expect(page.getByTestId("project-list")).toContainText(name);
+    await expect(page.getByTestId("open-project")).toHaveText(name);
 
+    await openProjects(page);
     await page.getByRole("button", { name: "New project" }).click();
     await page.getByLabel("New project").fill(name);
     await page.getByRole("button", { exact: true, name: "Create" }).click();
@@ -25,10 +41,11 @@ test.describe("Когда что-то не получилось", () => {
     const name = `stale-${process.pid}-${Date.now()}`;
 
     await page.goto("/");
+    await openProjects(page);
     await page.getByRole("button", { name: "New project" }).click();
     await page.getByLabel("New project").fill(name);
     await page.getByRole("button", { exact: true, name: "Create" }).click();
-    await expect(page.getByTestId("project-list")).toContainText(name);
+    await expect(page.getByTestId("open-project")).toHaveText(name);
 
     await page
       .getByPlaceholder("Write a chunk, or paste a whole sheet")
@@ -58,6 +75,7 @@ test.describe("Когда что-то не получилось", () => {
     const name = `empty-${process.pid}-${Date.now()}`;
 
     await page.goto("/");
+    await openProjects(page);
     await page.getByRole("button", { name: "New project" }).click();
     await page.getByLabel("New project").fill(name);
     await page.getByRole("button", { exact: true, name: "Create" }).click();

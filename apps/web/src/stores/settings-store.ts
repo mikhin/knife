@@ -49,9 +49,12 @@ export const setChunkFilter = (filter: ChunkFilter): void => {
   $chunkFilter.set(filter);
 };
 
-/** The sidebar is a place to stand, not a place to live: it folds away. */
-export const $sidebarOpen = persistentAtom<boolean>("knife:sidebar", true, {
-  decode: (stored) => stored !== "closed",
+/**
+ * The projects panel slides over the universe instead of pushing it aside,
+ * so it starts out of the way: the text is what the screen is for.
+ */
+export const $sidebarOpen = persistentAtom<boolean>("knife:sidebar", false, {
+  decode: (stored) => stored === "open",
   encode: (open) => (open ? "open" : "closed"),
 });
 

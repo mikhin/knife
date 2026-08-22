@@ -14,7 +14,11 @@
       "ignoreDependencies": ["tailwindcss"]
     },
     ".": {
-      "entry": ["tests/prepare-database.mts", "tests/**/*.spec.ts"],
+      "entry": [
+        "tests/prepare-database.mts",
+        "tests/**/*.setup.ts",
+        "tests/**/*.spec.ts"
+      ],
       "project": "tests/**/*.{ts,mts}"
     }
   },

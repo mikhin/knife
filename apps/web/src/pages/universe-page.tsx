@@ -152,14 +152,12 @@ export const UniversePage = (): JSX.Element => {
   );
 
   return (
-    <div className="flex h-screen">
-      {sidebarOpen ? (
-        <ProjectSidebar>
-          <LintPanel chunks={chunks} />
-        </ProjectSidebar>
-      ) : null}
+    <div className="flex h-screen flex-col">
+      <ProjectSidebar onClose={toggleSidebar} open={sidebarOpen}>
+        <LintPanel chunks={chunks} />
+      </ProjectSidebar>
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 flex-1 flex-col">
         <div className="flex items-center gap-3 border-b border-line px-3 py-2">
           <button
             aria-expanded={sidebarOpen}
@@ -167,9 +165,9 @@ export const UniversePage = (): JSX.Element => {
             title="Projects"
             type="button"
           >
-            {sidebarOpen ? "‹ Projects" : "☰ Projects"}
+            ☰ Projects
           </button>
-          <span className="truncate text-faint">
+          <span className="truncate text-faint" data-testid="open-project">
             {projects.find((project) => project.id === projectId)?.name ??
               "No project open"}
           </span>
@@ -193,7 +191,7 @@ export const UniversePage = (): JSX.Element => {
                 </>
               ) : (
                 <p className="text-xs text-faint">
-                  Create a project on the left, then write a chunk or add a
+                  Open Projects and create one, then write a chunk or add a
                   file.
                 </p>
               )}

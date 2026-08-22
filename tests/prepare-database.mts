@@ -6,7 +6,8 @@ import { execFileSync } from "node:child_process";
  *
  * This runs as part of the API server command rather than as a Playwright
  * global setup: the runner starts its web servers first, and by then the
- * database has to be up already.
+ * database has to be up already. Emptying it is global setup, because the
+ * servers — and this command with them — are skipped when they are reused.
  */
 const DATABASE_URL =
   process.env.E2E_DATABASE_URL ??
@@ -77,23 +78,3 @@ if (!process.env.CI) {
 run("pnpm", ["--filter", "@knife/api", "exec", "prisma", "migrate", "deploy"], {
   DATABASE_URL,
 });
-
-const database = new URL(DATABASE_URL).pathname.slice(1);
-
-// Each run starts from an empty universe. Guarded by the name: pointing
-// E2E_DATABASE_URL at a real database must never wipe it.
-if (database.endsWith("_e2e") && !process.env.CI) {
-  run("docker", [
-    "compose",
-    "exec",
-    "-T",
-    "db",
-    "psql",
-    "-U",
-    "knife",
-    "-d",
-    database,
-    "-c",
-    "truncate table projects cascade",
-  ]);
-}

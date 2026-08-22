@@ -5,11 +5,25 @@ import { expect, test } from "@playwright/test";
  * Проекты — обычная папка: их заводят, переименовывают и удаляют. Ограничение
  * «правки нет» относится к чанкам, а не к тому, как называется их вселенная.
  */
+/** Панель проектов лежит поверх вселенной и по умолчанию убрана. */
+const openProjects = async (page: Page): Promise<void> => {
+  const sidebar = page.getByTestId("project-sidebar");
+  if (
+    !(await sidebar.getByRole("button", { name: "New project" }).isVisible())
+  ) {
+    await page.getByRole("button", { name: "Projects" }).click();
+  }
+  await expect(
+    sidebar.getByRole("button", { name: "New project" }),
+  ).toBeVisible();
+};
+
 const createProject = async (page: Page, name: string): Promise<void> => {
+  await openProjects(page);
   await page.getByRole("button", { name: "New project" }).click();
   await page.getByLabel("New project").fill(name);
   await page.getByRole("button", { exact: true, name: "Create" }).click();
-  await expect(page.getByTestId("project-list")).toContainText(name);
+  await expect(page.getByTestId("open-project")).toHaveText(name);
 };
 
 test.describe("Проекты заводятся, переименовываются и удаляются", () => {
@@ -19,10 +33,13 @@ test.describe("Проекты заводятся, переименовывают
     await page.goto("/");
     await createProject(page, name);
 
+    await expect(page.getByTestId("open-project")).toHaveText(name);
+
+    // И он же отмечен в списке, когда панель открыта
+    await openProjects(page);
     await expect(
       page.getByTestId("project-list").locator('[aria-current="true"]'),
     ).toContainText(name);
-    await expect(page.getByTestId("project-list")).toContainText(name);
   });
 
   test("Проект можно переименовать, чанки остаются на месте", async ({
@@ -40,11 +57,12 @@ test.describe("Проекты заводятся, переименовывают
     await page.getByRole("button", { exact: true, name: "Add" }).click();
     await expect(page.getByTestId("chunk-list")).toContainText("night auditor");
 
+    await openProjects(page);
     await page.getByRole("button", { name: "Rename" }).click();
     await page.getByLabel("Rename project").fill(after);
     await page.getByRole("button", { name: "Save" }).click();
 
-    await expect(page.getByTestId("project-list")).toContainText(after);
+    await expect(page.getByTestId("open-project")).toHaveText(after);
     await expect(page.getByTestId("chunk-list")).toContainText("night auditor");
   });
 
@@ -56,12 +74,13 @@ test.describe("Проекты заводятся, переименовывают
     await createProject(page, taken);
     await createProject(page, mine);
 
+    await openProjects(page);
     await page.getByRole("button", { name: "Rename" }).click();
     await page.getByLabel("Rename project").fill(taken);
     await page.getByRole("button", { name: "Save" }).click();
 
     await expect(page.getByTestId("failure")).toContainText("already exists");
-    await expect(page.getByTestId("project-list")).toContainText(mine);
+    await expect(page.getByTestId("open-project")).toHaveText(mine);
   });
 
   test("Удаление спрашивает и говорит, что унесёт с собой", async ({
@@ -78,20 +97,22 @@ test.describe("Проекты заводятся, переименовывают
     await expect(page.getByTestId("chunk-list")).toContainText("night auditor");
 
     const sidebar = page.getByTestId("project-sidebar");
+    await openProjects(page);
     await sidebar.getByRole("button", { name: "Delete" }).click();
     const asked = page.getByRole("dialog");
     await expect(asked).toContainText(/Delete .* and its 1 chunks/);
 
     // Передумать можно, и тогда ничего не происходит
     await asked.getByRole("button", { name: "Cancel" }).click();
-    await expect(page.getByTestId("project-list")).toContainText(name);
+    await expect(page.getByTestId("open-project")).toHaveText(name);
 
+    await openProjects(page);
     await sidebar.getByRole("button", { name: "Delete" }).click();
     await page
       .getByRole("dialog")
       .getByRole("button", { name: "Delete" })
       .click();
 
-    await expect(page.getByTestId("project-list")).not.toContainText(name);
+    await expect(page.getByTestId("open-project")).not.toHaveText(name);
   });
 });
