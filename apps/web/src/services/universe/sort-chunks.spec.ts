@@ -22,7 +22,6 @@ const chunks = [
 const noMarks = {
   dangling: new Set<string>(),
   duplicates: new Set<string>(),
-  water: new Set<string>(),
 };
 
 describe("sortChunks", () => {
@@ -48,7 +47,6 @@ describe("sortChunks", () => {
     const flagged = sortChunks(chunks, "problems", {
       dangling: new Set(["newest"]),
       duplicates: new Set(["middle"]),
-      water: new Set(["middle"]),
     });
 
     expect(flagged.map((found) => found.id)).toEqual([

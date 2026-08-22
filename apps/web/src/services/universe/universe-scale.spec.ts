@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildUniverseIndex } from "@/services/universe/build-universe-index";
 import { listWords } from "@/services/universe/list-words";
-import { detectWater } from "@/services/universe/detect-water";
 import { findDanglingChunks } from "@/services/universe/find-dangling-chunks";
 import { findDuplicatePairs } from "@/services/universe/find-duplicate-pairs";
 import type { Chunk } from "@knife/contract";
@@ -65,9 +64,6 @@ const nextSeed = (seed: number): number =>
 /** Один чанк, который ни с чем не делит ни слова: висящие должны его найти. */
 const LONELY = "Sundials rust quietly beneath unpruned wisteria.";
 
-/** И один явно водянистый — чтобы правилам воды было что здесь находить. */
-const WATERY = "It should be noted that this is what it is about.";
-
 const generateUniverse = (size: number): Chunk[] => {
   const chunks: Chunk[] = [];
   let seed = 42;
@@ -88,9 +84,7 @@ const generateUniverse = (size: number): Chunk[] => {
     const text =
       position % 50 === 0 && previous
         ? previous
-        : position % 100 === 7
-          ? WATERY
-          : `The ${words.join(" ")} of week ${position % 400} is approved by the manager.`;
+        : `The ${words.join(" ")} of week ${position % 400} is approved by the manager.`;
     previous = text;
 
     chunks.push({
@@ -117,26 +111,19 @@ describe("a universe of tens of thousands of chunks", () => {
   // Единственный тест, которому позволено быть долгим: он про то, сколько
   // времени занимает вселенная целиком.
   it(
-    "shows duplicates, water and the graph without minutes of waiting",
+    "shows duplicates, words and hanging chunks without minutes of waiting",
     () => {
       const chunks = generateUniverse(UNIVERSE_SIZE);
 
       const started = performance.now();
       const index = buildUniverseIndex(chunks);
       const duplicates = findDuplicatePairs(index);
-      const water = detectWater(index);
       const dangling = findDanglingChunks(index);
       const words = listWords(index);
       const elapsed = performance.now() - started;
 
       expect(index.size).toBe(UNIVERSE_SIZE + 1);
       expect(duplicates.pairs.length).toBeGreaterThan(0);
-
-      // Ни одна проверка не должна ни молчать на всей вселенной, ни утонуть в
-      // ней: доля воды без границ прошла бы и на 0%, и на 95%.
-      const wateryIds = new Set(water.map((verdict) => verdict.chunkId));
-      expect(wateryIds.has("chunk-7")).toBe(true);
-      expect(water.length / index.size).toBeLessThan(0.5);
 
       // Висящий здесь ровно один, и он подсажен намеренно.
       expect(dangling).toEqual(["lonely"]);

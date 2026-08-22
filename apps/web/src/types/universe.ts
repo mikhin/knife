@@ -42,23 +42,6 @@ export type DuplicateReport = {
   truncatedPairs: number;
 };
 
-export type WaterRule =
-  | "no-rare-terms"
-  | "repeats-itself"
-  | "stop-word-flood"
-  | "too-few-terms";
-
-export type WaterFinding = {
-  evidence: string;
-  explanation: string;
-  rule: WaterRule;
-};
-
-export type WaterVerdict = {
-  chunkId: string;
-  findings: WaterFinding[];
-};
-
 export type WordCount = {
   chunkCount: number;
   label: string;

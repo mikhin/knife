@@ -4,7 +4,7 @@
  * Wenge and lamplight: dark wood, a warm bulb, nothing shouting. Reading
  * requirements is dull work and the screen should not add to it, so no
  * colour here is a warning. The three checks are told apart by warmth
- * instead: rust for a repeat, ochre for water, moss for a chunk on its own.
+ * instead: rust for a repeat, ochre for a note, moss for a chunk on its own.
  */
 @theme {
   --color-canvas: #181210;
@@ -14,7 +14,7 @@
   --color-faint: #b49d81;
   --color-accent: #d3a463;
   --color-dup: #d47c50;
-  --color-water: #c9a254;
+  --color-note: #c9a254;
   --color-hang: #94a17d;
 }
 

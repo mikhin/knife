@@ -168,12 +168,6 @@ export const $duplicatesAboveThreshold = computed(
     ),
 );
 
-export const $waterByChunk = computed(
-  $report,
-  (report) =>
-    new Map((report?.water ?? []).map((verdict) => [verdict.chunkId, verdict])),
-);
-
 export const $danglingIds = computed(
   $report,
   (report) => new Set(report?.dangling ?? []),

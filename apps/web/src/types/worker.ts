@@ -2,7 +2,6 @@ import type { Chunk } from "@knife/contract";
 import type {
   DuplicateReport,
   SearchHit,
-  WaterVerdict,
   WordCount,
   WordProfile,
 } from "@/types/universe";
@@ -14,7 +13,6 @@ import type {
 export type UniverseReport = {
   dangling: string[];
   duplicates: DuplicateReport;
-  water: WaterVerdict[];
   words: WordCount[];
 };
 

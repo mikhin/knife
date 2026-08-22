@@ -4,14 +4,11 @@ import type { ChunkOrder } from "@/types/list-view";
 type Marks = {
   dangling: ReadonlySet<string>;
   duplicates: ReadonlySet<string>;
-  water: ReadonlySet<string>;
 };
 
 /** A chunk two checks agree on comes before one only a single check flagged. */
 const trouble = (id: string, marks: Marks): number =>
-  (marks.duplicates.has(id) ? 2 : 0) +
-  (marks.water.has(id) ? 1 : 0) +
-  (marks.dangling.has(id) ? 1 : 0);
+  (marks.duplicates.has(id) ? 2 : 0) + (marks.dangling.has(id) ? 1 : 0);
 
 export const sortChunks = (
   chunks: Chunk[],

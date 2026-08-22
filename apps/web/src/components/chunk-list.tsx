@@ -10,7 +10,6 @@ type Props = {
   onOpen: (id: string) => void;
   selectedId: string | undefined;
   spansByChunk: Map<string, Array<{ end: number; start: number }>>;
-  waterIds: ReadonlySet<string>;
 };
 
 const MAX_ROWS = 300;
@@ -23,7 +22,6 @@ export const ChunkList = ({
   onOpen,
   selectedId,
   spansByChunk,
-  waterIds,
 }: Props): JSX.Element => {
   const listed = chunks.slice(0, MAX_ROWS);
 
@@ -53,9 +51,6 @@ export const ChunkList = ({
           <span className="flex shrink-0 gap-1 pt-0.5">
             {duplicateIds.has(chunk.id) ? (
               <em className={`${TAG} text-dup`}>dup</em>
-            ) : null}
-            {waterIds.has(chunk.id) ? (
-              <em className={`${TAG} text-water`}>water</em>
             ) : null}
             {danglingIds.has(chunk.id) ? (
               <em className={`${TAG} text-hang`}>hanging</em>

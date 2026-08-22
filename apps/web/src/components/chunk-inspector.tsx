@@ -3,7 +3,7 @@ import { HighlightedText } from "@/components/highlighted-text";
 import { sharedWordSpans } from "@/services/universe/shared-word-spans";
 import type { Chunk } from "@knife/contract";
 import type { LintFinding } from "@knife/contract";
-import type { DuplicatePair, WaterVerdict } from "@/types/universe";
+import type { DuplicatePair } from "@/types/universe";
 
 type Props = {
   chunk: Chunk;
@@ -13,7 +13,6 @@ type Props = {
   onDelete: () => void;
   onOpenNeighbour: (id: string) => void;
   spans: Array<{ end: number; start: number }>;
-  water: undefined | WaterVerdict;
 };
 
 const HEADING = "mt-5 mb-2 text-xs tracking-wider text-faint uppercase";
@@ -52,7 +51,7 @@ const Neighbours = ({
     <section>
       <h3 className={HEADING}>{title}</h3>
       {pairs.some(({ pair }) => pair.polarityDiffers) ? (
-        <p className="mb-2 text-xs text-water">
+        <p className="mb-2 text-xs text-note">
           “denies” — one of the two denies what the other says; read before
           deleting
         </p>
@@ -71,7 +70,7 @@ const Neighbours = ({
                 {Math.round(pair.similarity * 100)}%
               </span>
               {pair.polarityDiffers ? (
-                <span className="shrink-0 text-water">denies</span>
+                <span className="shrink-0 text-note">denies</span>
               ) : null}
               <span className="min-w-0">
                 {other ? (
@@ -104,7 +103,6 @@ export const ChunkInspector = ({
   onDelete,
   onOpenNeighbour,
   spans,
-  water,
 }: Props): JSX.Element => (
   <aside
     className="overflow-y-auto border-l border-line p-3"
@@ -134,21 +132,6 @@ export const ChunkInspector = ({
       </section>
     ) : null}
 
-    {water ? (
-      <section>
-        <h3 className={HEADING}>Water</h3>
-        <ul className="flex flex-col gap-2">
-          {water.findings.map((finding) => (
-            <li className={CARD} key={finding.rule}>
-              <code className="text-xs text-water">{finding.rule}</code>
-              <span>{finding.explanation}</span>
-              <span className="text-xs text-faint">{finding.evidence}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-    ) : null}
-
     <Neighbours
       chunkId={chunk.id}
       onOpen={onOpenNeighbour}
@@ -172,7 +155,7 @@ export const ChunkInspector = ({
               className={CARD}
               key={`${finding.tool}-${finding.rule}-${finding.offset}`}
             >
-              <code className="text-xs text-water">
+              <code className="text-xs text-note">
                 {finding.tool}/{finding.rule}
               </code>
               <span>{finding.message}</span>

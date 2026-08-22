@@ -1,7 +1,6 @@
 import { buildUniverseIndex } from "@/services/universe/build-universe-index";
 import { listWords } from "@/services/universe/list-words";
 import { describeWord } from "@/services/universe/describe-word";
-import { detectWater } from "@/services/universe/detect-water";
 import { findDanglingChunks } from "@/services/universe/find-dangling-chunks";
 import { findDuplicatePairs } from "@/services/universe/find-duplicate-pairs";
 import { searchUniverse } from "@/services/universe/search-universe";
@@ -28,7 +27,6 @@ const analyse = (
     report: {
       dangling: findDanglingChunks(index),
       duplicates: findDuplicatePairs(index),
-      water: detectWater(index),
       words: listWords(index),
     },
     type: "analysed",

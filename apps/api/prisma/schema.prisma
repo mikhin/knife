@@ -1,4 +1,4 @@
-// Two tables, and there will not be a third. Duplicates, water, occurrences,
+// Two tables, and there will not be a third. Duplicates, occurrences,
 // links and linter findings are computed in the browser and never written
 // back: a stored verdict would outlive the wording it judged.
 

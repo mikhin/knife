@@ -11,9 +11,8 @@ const chunk = (id: string): Chunk => ({
 
 const universe = [chunk("one"), chunk("two"), chunk("three")];
 const marks = {
-  dangling: new Set(["three"]),
+  dangling: new Set<string>(),
   duplicates: new Set(["one", "two"]),
-  water: new Set<string>(),
 };
 
 const ids = (kept: Chunk[]): string[] => kept.map((one) => one.id);
@@ -32,10 +31,9 @@ describe("filterChunks", () => {
       "one",
       "two",
     ]);
-    expect(ids(filterChunks(universe, "dangling", marks))).toEqual(["three"]);
   });
 
   it("says so plainly when a check flagged nothing", () => {
-    expect(filterChunks(universe, "water", marks)).toEqual([]);
+    expect(filterChunks(universe, "dangling", marks)).toEqual([]);
   });
 });

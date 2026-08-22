@@ -35,7 +35,6 @@ import {
   $report,
   $searchHits,
   $selectedChunkId,
-  $waterByChunk,
   $wordFilter,
   $wordProfile,
   addText,
@@ -53,7 +52,6 @@ export const UniversePage = (): JSX.Element => {
   const chunks = useStore($chunks);
   const report = useStore($report);
   const duplicates = useStore($duplicatesAboveThreshold);
-  const waterByChunk = useStore($waterByChunk);
   const danglingIds = useStore($danglingIds);
   const selectedChunkId = useStore($selectedChunkId);
   const wordProfile = useStore($wordProfile);
@@ -107,7 +105,6 @@ export const UniversePage = (): JSX.Element => {
     const marks = {
       dangling: danglingIds,
       duplicates: duplicateIds,
-      water: new Set(waterByChunk.keys()),
     };
 
     return sortChunks(
@@ -115,14 +112,7 @@ export const UniversePage = (): JSX.Element => {
       chunkOrder,
       marks,
     );
-  }, [
-    chunkFilter,
-    chunkOrder,
-    danglingIds,
-    duplicateIds,
-    listedChunks,
-    waterByChunk,
-  ]);
+  }, [chunkFilter, chunkOrder, danglingIds, duplicateIds, listedChunks]);
 
   const selectedChunk = selectedChunkId
     ? chunkById.get(selectedChunkId)
@@ -190,7 +180,6 @@ export const UniversePage = (): JSX.Element => {
               onOpen={selectChunk}
               selectedId={selectedChunkId}
               spansByChunk={spansByChunk}
-              waterIds={new Set(waterByChunk.keys())}
             />
           </div>
 
@@ -207,7 +196,6 @@ export const UniversePage = (): JSX.Element => {
                   options={[
                     { label: "All", value: "all" },
                     { label: "Repeats", value: "duplicates" },
-                    { label: "Water", value: "water" },
                     { label: "Hanging", value: "dangling" },
                   ]}
                   value={chunkFilter}
@@ -271,7 +259,6 @@ export const UniversePage = (): JSX.Element => {
             }}
             onOpenNeighbour={selectChunk}
             spans={spansByChunk.get(selectedChunk.id) ?? []}
-            water={waterByChunk.get(selectedChunk.id)}
           />
         ) : null}
 

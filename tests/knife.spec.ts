@@ -6,7 +6,7 @@ import { expect, test } from "@playwright/test";
  * Функция: Вселенная требований, в которой можно ориентироваться
  *
  * Как человек, который годами приносит длинные простыни markdown,
- * я хочу видеть повторы, воду и висящие куски на графе и вычищать их,
+ * я хочу видеть повторы и висящие куски и вычищать их,
  * чтобы и через пять лет я и агенты находили в требованиях нужное,
  * не перечитывая всё глазами.
  *
@@ -187,20 +187,6 @@ test.describe("Вселенная требований, в которой мож
     await expect(repeats).toContainText(/\d{4}-\d{2}-\d{2}/);
   });
 
-  test("Вижу воду", async ({ page }) => {
-    await createProject(page);
-    await bringSheet(page, SHEET);
-
-    const watery = chunkRow(page, "It should be noted that this is basically");
-    await expect(watery.locator("em").getByText("water")).toBeVisible();
-
-    await watery.click();
-    const inspector = page.getByTestId("chunk-inspector");
-    await expect(inspector).toContainText("Water");
-    // И мне сказано, какое правило сработало
-    await expect(inspector).toContainText("stop-word-flood");
-  });
-
   test("Иду по спискам стрелками", async ({ page }) => {
     await createProject(page);
     await bringSheet(page, SHEET);
@@ -234,22 +220,24 @@ test.describe("Вселенная требований, в которой мож
     const rows = page.getByTestId("chunk-list").getByRole("button");
     const all = await rows.count();
 
-    // Только вода: водянистый на месте, а просто одинокий ушёл
-    await page.getByLabel("Show").selectOption("water");
+    // Только висящие: одинокий на месте, а повтор ушёл
+    await page.getByLabel("Show").selectOption("dangling");
     await expect.poll(async () => rows.count()).toBeLessThan(all);
     await expect(
-      chunkRow(page, "It should be noted that this is basically"),
+      chunkRow(page, "Peacocks roam the orangery unsupervised."),
+    ).toBeVisible();
+    await expect(
+      chunkRow(page, "The night auditor closes the shift report"),
+    ).toBeHidden();
+
+    // Только повторы: теперь наоборот
+    await page.getByLabel("Show").selectOption("duplicates");
+    await expect(
+      chunkRow(page, "The night auditor closes the shift report"),
     ).toBeVisible();
     await expect(
       chunkRow(page, "Peacocks roam the orangery unsupervised."),
     ).toBeHidden();
-
-    // Только висящие: теперь наоборот — водянистый заголовок ушёл
-    await page.getByLabel("Show").selectOption("dangling");
-    await expect(
-      chunkRow(page, "Peacocks roam the orangery unsupervised."),
-    ).toBeVisible();
-    await expect(chunkRow(page, /^Night audit$/)).toBeHidden();
 
     await page.getByLabel("Show").selectOption("all");
     await expect.poll(async () => rows.count()).toBe(all);
@@ -474,14 +462,14 @@ test.describe("Вселенная требований, в которой мож
     }
 
     // А вердикты считаются на месте — и после перезагрузки считаются заново
-    const wet = chunkRow(page, "It should be noted that this is basically");
-    await expect(wet.locator("em").getByText("water")).toBeVisible();
+    const lonely = chunkRow(page, "Peacocks roam the orangery unsupervised.");
+    await expect(lonely.locator("em").getByText("hanging")).toBeVisible();
 
     await page.reload();
     await expect(
-      chunkRow(page, "It should be noted that this is basically")
+      chunkRow(page, "Peacocks roam the orangery unsupervised.")
         .locator("em")
-        .getByText("water"),
+        .getByText("hanging"),
     ).toBeVisible();
   });
 
