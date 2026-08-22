@@ -153,9 +153,7 @@ export const UniversePage = (): JSX.Element => {
 
   return (
     <div className="flex h-screen flex-col">
-      <ProjectSidebar onClose={toggleSidebar} open={sidebarOpen}>
-        <LintPanel chunks={chunks} />
-      </ProjectSidebar>
+      <ProjectSidebar onClose={toggleSidebar} open={sidebarOpen} />
 
       <div className="flex min-h-0 flex-1 flex-col">
         <div className="flex items-center gap-3 border-b border-line px-3 py-2">
@@ -171,6 +169,9 @@ export const UniversePage = (): JSX.Element => {
             {projects.find((project) => project.id === projectId)?.name ??
               "No project open"}
           </span>
+          <div className="ml-auto flex min-w-0 items-center">
+            <LintPanel chunks={chunks} />
+          </div>
         </div>
 
         <FailureBanner />

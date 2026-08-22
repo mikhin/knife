@@ -25,3 +25,10 @@ export const BinIcon = (): JSX.Element => (
     <path d="M2.5 4h11M6 4V2.5h4V4M4 4l.7 9.5h6.6L12 4M6.5 6.5v5M9.5 6.5v5" />
   </svg>
 );
+
+/** A cut diamond: the linters go over the wording facet by facet. */
+export const DiamondIcon = (): JSX.Element => (
+  <svg {...SVG}>
+    <path d="M4 2.5h8l2.5 4L8 14 1.5 6.5zM1.5 6.5h13M7.3 2.5 5.3 6.5 8 14l2.7-7.5-2-4" />
+  </svg>
+);

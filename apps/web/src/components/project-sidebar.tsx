@@ -1,6 +1,6 @@
 import type { Project } from "@knife/contract";
 import { useStore } from "@nanostores/react";
-import { type JSX, type ReactNode, useEffect, useState } from "react";
+import { type JSX, useEffect, useState } from "react";
 import { BinIcon, PencilIcon } from "@/components/icons";
 import { ListRow } from "@/components/list-row";
 import { DeleteDialog, NameDialog } from "@/components/project-dialogs";
@@ -16,8 +16,6 @@ import {
 import { $chunks } from "@/stores/universe-store";
 
 type Props = {
-  /** Anything that acts on the open project, set apart by a divider. */
-  children?: ReactNode;
   onClose: () => void;
   open: boolean;
 };
@@ -29,13 +27,7 @@ type Asking =
 /** Small enough to sit on the row without crowding the name off it. */
 const ROW_ACTION = "shrink-0 border-transparent px-1 py-1 text-faint";
 
-const SECTION = "border-t border-line p-3";
-
-export const ProjectSidebar = ({
-  children,
-  onClose,
-  open,
-}: Props): JSX.Element => {
+export const ProjectSidebar = ({ onClose, open }: Props): JSX.Element => {
   const projects = useStore($projects);
   const currentId = useStore($currentProjectId);
   const chunks = useStore($chunks);
@@ -144,8 +136,6 @@ export const ProjectSidebar = ({
             </ul>
           )}
         </div>
-
-        {children ? <div className={SECTION}>{children}</div> : null}
       </aside>
 
       {asking.kind === "new" ? (

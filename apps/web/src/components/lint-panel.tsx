@@ -1,5 +1,6 @@
 import { useStore } from "@nanostores/react";
 import type { JSX } from "react";
+import { DiamondIcon } from "@/components/icons";
 import { attempt } from "@/stores/failure-store";
 import {
   $lintCoverage,
@@ -23,13 +24,14 @@ export const LintPanel = ({ chunks }: Props): JSX.Element => {
   return (
     <div className="flex items-center gap-2">
       <button
-        className="disabled:cursor-not-allowed disabled:opacity-40"
+        className="flex items-center gap-1.5 disabled:cursor-not-allowed disabled:opacity-40"
         disabled={running || chunks.length === 0}
         onClick={() => {
           attempt(runLinters(chunks));
         }}
         type="button"
       >
+        <DiamondIcon />
         {running ? "Running Vale, textlint, proselint..." : "Run linters"}
       </button>
 
