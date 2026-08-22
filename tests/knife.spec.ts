@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 import { expect, test } from "@playwright/test";
 
 /**
@@ -49,6 +49,9 @@ const chunkCount = async (page: Page): Promise<number> => {
   const response = await page.request.get(`/api/projects/${projectId}/chunks`);
   return ((await response.json()) as unknown[]).length;
 };
+
+const chosen = async (rows: Locator, at: number): Promise<null | string> =>
+  rows.nth(at).getAttribute("aria-current");
 
 const chunkRow = (page: Page, text: RegExp | string) =>
   page
@@ -196,6 +199,32 @@ test.describe("Вселенная требований, в которой мож
     await expect(inspector).toContainText("Water");
     // И мне сказано, какое правило сработало
     await expect(inspector).toContainText("stop-word-flood");
+  });
+
+  test("Иду по спискам стрелками", async ({ page }) => {
+    await createProject(page);
+    await bringSheet(page, SHEET);
+
+    // Открыл один чанк — дальше листаю с клавиатуры
+    const chunks = page.getByTestId("chunk-list").getByRole("button");
+    await chunks.first().click();
+    await expect.poll(async () => chosen(chunks, 0)).toBe("true");
+
+    await page.keyboard.press("ArrowDown");
+    await expect.poll(async () => chosen(chunks, 1)).toBe("true");
+    expect(await chosen(chunks, 0)).toBe("false");
+
+    await page.keyboard.press("ArrowUp");
+    await expect.poll(async () => chosen(chunks, 0)).toBe("true");
+
+    // И то же самое в колонке слов
+    const words = page.getByTestId("word-list").getByRole("button");
+    await words.first().click();
+    await expect.poll(async () => chosen(words, 0)).toBe("true");
+
+    await page.keyboard.press("ArrowDown");
+    await expect.poll(async () => chosen(words, 1)).toBe("true");
+    expect(await chosen(words, 0)).toBe("false");
   });
 
   test("Оставляю в списке одну беду за раз", async ({ page }) => {

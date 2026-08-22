@@ -1,4 +1,5 @@
-import { type JSX, useEffect, useRef } from "react";
+import type { JSX } from "react";
+import { ListRow } from "@/components/list-row";
 import type { WordCount } from "@/types/universe";
 
 type Props = {
@@ -14,18 +15,6 @@ export const WordList = ({
   selectedStem,
   words,
 }: Props): JSX.Element => {
-  const selectedRef = useRef<HTMLButtonElement>(null);
-
-  /**
-   * Searching a word marks its row, and the row is usually far down a list of
-   * hundreds. Marking something nobody can see is the same as not marking it.
-   */
-  useEffect(() => {
-    if (selectedStem !== undefined) {
-      selectedRef.current?.scrollIntoView({ block: "nearest" });
-    }
-  }, [selectedStem]);
-
   const listed = words.slice(0, MAX_ROWS);
 
   /**
@@ -40,28 +29,19 @@ export const WordList = ({
 
   return (
     <ul className="flex flex-col gap-1" data-testid="word-list">
-      {(missing ? [missing, ...listed] : listed).map((word) => {
-        const isSelected = word.stem === selectedStem;
-
-        return (
-          <li key={word.stem}>
-            <button
-              aria-current={isSelected}
-              className={`flex w-full items-baseline justify-between gap-2 rounded-md border bg-transparent px-2 py-1 text-left ${
-                isSelected ? "border-accent" : "border-transparent"
-              }`}
-              onClick={() => {
-                onPick(word.stem);
-              }}
-              ref={isSelected ? selectedRef : null}
-              type="button"
-            >
-              <span className="truncate">{word.label}</span>
-              <span className="text-xs text-faint">{word.chunkCount}</span>
-            </button>
-          </li>
-        );
-      })}
+      {(missing ? [missing, ...listed] : listed).map((word) => (
+        <ListRow
+          className="flex items-baseline justify-between gap-2"
+          isSelected={word.stem === selectedStem}
+          key={word.stem}
+          onOpen={() => {
+            onPick(word.stem);
+          }}
+        >
+          <span className="truncate">{word.label}</span>
+          <span className="text-xs text-faint">{word.chunkCount}</span>
+        </ListRow>
+      ))}
       {words.length > MAX_ROWS ? (
         <li className="px-2 py-1 text-xs text-faint">
           {words.length - MAX_ROWS} rarer words not listed
