@@ -1,5 +1,16 @@
-export type ChunkOrder = "longest" | "newest" | "oldest" | "problems";
+export const CHUNK_ORDERS = [
+  "oldest",
+  "newest",
+  "longest",
+  "problems",
+] as const;
 
-export type WordOrder = "alphabetical" | "common" | "rare";
+export const WORD_ORDERS = ["common", "rare", "alphabetical"] as const;
 
-export type ChunkFilter = "all" | "dangling" | "duplicates";
+export const CHUNK_FILTERS = ["all", "duplicates", "dangling"] as const;
+
+export type ChunkOrder = (typeof CHUNK_ORDERS)[number];
+
+export type WordOrder = (typeof WORD_ORDERS)[number];
+
+export type ChunkFilter = (typeof CHUNK_FILTERS)[number];
