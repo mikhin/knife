@@ -1,0 +1,29 @@
+{
+  "name": "@knife/universe",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Вселенная как расчёт: разрез, токены, дубли, висящие куски. Ни браузера, ни сети — одно ядро на интерфейс и на агентов.",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "tsc": "tsc -b",
+    "test": "vitest --run --reporter=dot",
+    "test:watch": "vitest",
+    "mutate": "stryker run"
+  },
+  "dependencies": {
+    "@knife/contract": "workspace:*",
+    "snowball-stemmers": "^0.6.0"
+  },
+  "devDependencies": {
+    "@stryker-mutator/core": "9.6.1",
+    "@stryker-mutator/vitest-runner": "9.6.1",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

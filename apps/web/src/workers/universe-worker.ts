@@ -1,10 +1,12 @@
-import { buildUniverseIndex } from "@/services/universe/build-universe-index";
-import { listWords } from "@/services/universe/list-words";
-import { describeWord } from "@/services/universe/describe-word";
-import { findDanglingChunks } from "@/services/universe/find-dangling-chunks";
-import { findDuplicatePairs } from "@/services/universe/find-duplicate-pairs";
-import { searchUniverse } from "@/services/universe/search-universe";
-import type { UniverseIndex } from "@/types/universe";
+import {
+  buildUniverseIndex,
+  describeWord,
+  findDanglingChunks,
+  findDuplicatePairs,
+  listWords,
+  searchUniverse,
+} from "@knife/universe";
+import type { UniverseIndex } from "@knife/universe";
 import type { WorkerRequest, WorkerResponse } from "@/types/worker";
 
 /**

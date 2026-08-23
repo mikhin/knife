@@ -1,4 +1,4 @@
-import type { SourceFormat } from "@/types/source-format";
+import type { SourceFormat } from "@knife/universe";
 
 const MARKDOWN_EXTENSIONS = [".md", ".markdown", ".mdown", ".mkd"];
 

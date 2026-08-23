@@ -4,7 +4,7 @@ import type {
   SearchHit,
   WordCount,
   WordProfile,
-} from "@/types/universe";
+} from "@knife/universe";
 
 /**
  * Everything the checks found, computed from the chunks alone and living only

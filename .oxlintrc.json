@@ -38,6 +38,11 @@
   "settings": {
     "boundaries/elements": [
       {
+        "type": "universe",
+        "pattern": "packages/universe/src",
+        "partialMatch": true
+      },
+      {
         "type": "types",
         "pattern": "apps/*/src/types",
         "partialMatch": true
@@ -90,7 +95,11 @@
     ],
     "import/resolver": {
       "typescript": {
-        "project": ["apps/web/tsconfig.json", "apps/api/tsconfig.json"],
+        "project": [
+          "apps/web/tsconfig.json",
+          "apps/api/tsconfig.json",
+          "packages/universe/tsconfig.json"
+        ],
         "noWarnOnMultipleProjects": true
       }
     }
@@ -157,13 +166,43 @@
   },
   "overrides": [
     {
-      "files": ["apps/**/*.{ts,tsx}"],
+      "files": ["apps/**/*.{ts,tsx}", "packages/**/*.ts"],
       "rules": {
         "boundaries/dependencies": [
           "error",
           {
             "default": "allow",
             "policies": [
+              {
+                "from": [
+                  {
+                    "element": {
+                      "type": "universe"
+                    }
+                  }
+                ],
+                "disallow": [
+                  {
+                    "to": {
+                      "element": {
+                        "type": [
+                          "api",
+                          "components",
+                          "config",
+                          "hooks",
+                          "lib",
+                          "pages",
+                          "services",
+                          "stores",
+                          "types",
+                          "workers"
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "message": "The core computes and knows no application: @knife/universe never reaches into apps."
+              },
               {
                 "from": [
                   {
@@ -360,6 +399,12 @@
       ],
       "rules": {
         "unicorn/require-post-message-target-origin": "off"
+      }
+    },
+    {
+      "files": ["packages/universe/src/text/stem-word.ts"],
+      "rules": {
+        "typescript/triple-slash-reference": "off"
       }
     }
   ]

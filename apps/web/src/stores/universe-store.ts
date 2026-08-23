@@ -1,11 +1,9 @@
 import { atom, computed } from "nanostores";
 import { chunksApi } from "@/api/chunks-api";
-import { chunkSource } from "@/services/chunking/chunk-source";
-import { detectPastedFormat } from "@/services/chunking/detect-pasted-format";
+import { chunkSource, detectPastedFormat } from "@knife/universe";
 import { $similarityThreshold } from "@/stores/settings-store";
 import type { Chunk } from "@knife/contract";
-import type { SourceFormat } from "@/types/source-format";
-import type { SearchHit, WordProfile } from "@/types/universe";
+import type { SearchHit, SourceFormat, WordProfile } from "@knife/universe";
 import type {
   UniverseReport,
   WorkerRequest,

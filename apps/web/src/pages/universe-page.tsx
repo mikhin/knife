@@ -30,10 +30,10 @@ import {
   setWordOrder,
   toggleSidebar,
 } from "@/stores/settings-store";
-import { filterChunks } from "@/services/universe/filter-chunks";
-import { filterWords } from "@/services/universe/filter-words";
-import { sortChunks } from "@/services/universe/sort-chunks";
-import { sortWords } from "@/services/universe/sort-words";
+import { filterChunks } from "@/services/lists/filter-chunks";
+import { filterWords } from "@/services/lists/filter-words";
+import { sortChunks } from "@/services/lists/sort-chunks";
+import { sortWords } from "@/services/lists/sort-words";
 import {
   $chunks,
   $danglingIds,

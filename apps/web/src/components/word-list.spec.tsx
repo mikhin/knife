@@ -2,7 +2,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { WordList } from "@/components/word-list";
-import type { WordCount } from "@/types/universe";
+import type { WordCount } from "@knife/universe";
 
 const word = (stem: string, chunkCount: number): WordCount => ({
   chunkCount,

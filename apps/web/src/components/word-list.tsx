@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 import { ListRow } from "@/components/list-row";
-import type { WordCount } from "@/types/universe";
+import type { WordCount } from "@knife/universe";
 
 type Props = {
   onPick: (stem: string) => void;

@@ -4,7 +4,7 @@ import {
   $similarityThreshold,
   setSimilarityThreshold,
 } from "@/stores/settings-store";
-import type { DuplicatePair } from "@/types/universe";
+import type { DuplicatePair } from "@knife/universe";
 
 type Props = {
   pairs: DuplicatePair[];

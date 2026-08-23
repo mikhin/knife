@@ -1,7 +1,7 @@
 import type { JSX } from "react";
 import { HighlightedText } from "@/components/highlighted-text";
 import type { Chunk } from "@knife/contract";
-import type { WordProfile } from "@/types/universe";
+import type { WordProfile } from "@knife/universe";
 
 type Props = {
   chunkById: Map<string, Chunk>;

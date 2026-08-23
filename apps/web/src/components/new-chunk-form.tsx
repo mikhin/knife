@@ -1,6 +1,5 @@
 import { type JSX, useMemo, useState } from "react";
-import { chunkSource } from "@/services/chunking/chunk-source";
-import { detectPastedFormat } from "@/services/chunking/detect-pasted-format";
+import { chunkSource, detectPastedFormat } from "@knife/universe";
 
 type Props = {
   onAdd: (text: string) => void;

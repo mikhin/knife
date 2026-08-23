@@ -1,9 +1,9 @@
 import type { JSX } from "react";
 import { HighlightedText } from "@/components/highlighted-text";
-import { sharedWordSpans } from "@/services/universe/shared-word-spans";
+import { sharedWordSpans } from "@knife/universe";
 import type { Chunk } from "@knife/contract";
 import type { LintFinding } from "@knife/contract";
-import type { DuplicatePair } from "@/types/universe";
+import type { DuplicatePair } from "@knife/universe";
 
 type Props = {
   chunk: Chunk;
