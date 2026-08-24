@@ -5,21 +5,13 @@
   },
   "workspaces": {
     "apps/api": {
-      "entry": [
-        "src/main.ts",
-        "src/generated/prisma/client.ts"
-      ],
+      "entry": ["src/main.ts", "src/generated/prisma/client.ts"],
       "project": "src/**/*.ts"
     },
     "apps/web": {
-      "entry": [
-        "index.html",
-        "src/workers/*.ts"
-      ],
+      "entry": ["index.html", "src/workers/*.ts"],
       "project": "src/**/*.{ts,tsx}",
-      "ignoreDependencies": [
-        "tailwindcss"
-      ]
+      "ignoreDependencies": ["tailwindcss"]
     },
     ".": {
       "entry": [
