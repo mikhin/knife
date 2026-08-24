@@ -8,7 +8,6 @@ import type { ChunkWord, DuplicatePair } from "@knife/universe";
 type Props = {
   chunk: Chunk;
   duplicates: Array<{ other: Chunk | undefined; pair: DuplicatePair }>;
-  isDangling: boolean;
   lint: LintFinding[];
   onDelete: () => void;
   onOpenNeighbour: (id: string) => void;
@@ -106,7 +105,6 @@ const Neighbours = ({
 export const ChunkInspector = ({
   chunk,
   duplicates,
-  isDangling,
   lint,
   onDelete,
   onOpenNeighbour,
@@ -157,15 +155,6 @@ export const ChunkInspector = ({
             and {words.length - MAX_WORDS} more
           </p>
         ) : null}
-      </section>
-    ) : null}
-
-    {isDangling ? (
-      <section>
-        <h3 className={HEADING}>Hanging</h3>
-        <p className="text-xs text-faint">
-          Not one of its words appears anywhere else in the universe.
-        </p>
       </section>
     ) : null}
 

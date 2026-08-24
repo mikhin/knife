@@ -293,7 +293,6 @@ export const UniversePage = (): JSX.Element => {
             <ChunkInspector
               chunk={selectedChunk}
               duplicates={selectedDuplicates}
-              isDangling={danglingIds.has(selectedChunk.id)}
               lint={lintForSelected}
               onDelete={() => {
                 attempt(deleteChunk(projectId, selectedChunk.id));

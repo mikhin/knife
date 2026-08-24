@@ -265,8 +265,15 @@ test.describe("Вселенная требований, в которой мож
     const lonely = chunkRow(page, "Peacocks roam the orangery unsupervised.");
     await expect(lonely.locator("em").getByText("hanging")).toBeVisible();
 
+    // В карточке это видно по словам: ни одно не встречается больше нигде
     await lonely.click();
-    await expect(page.getByTestId("chunk-inspector")).toContainText("Hanging");
+    const words = page
+      .getByTestId("chunk-inspector")
+      .locator("section", { hasText: "Made of" });
+    const chips = words.getByRole("button");
+    await expect(chips.filter({ hasText: / 0$/ })).toHaveCount(
+      await chips.count(),
+    );
   });
 
   test("Формы одного слова — одно слово", async ({ page }) => {
