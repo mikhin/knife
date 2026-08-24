@@ -17,10 +17,13 @@ const prisma = {
   },
 };
 
+const TEAM = "8f1a5c62-0f7a-4a3e-9d4e-6c1b2a3d4e5f";
+
 const record = (name: string): ProjectRecord => ({
   createdAt: new Date("2026-08-21T10:00:00.000Z"),
   id: "universe",
   name,
+  organizationId: TEAM,
 });
 
 describe("ProjectsService", () => {
@@ -44,7 +47,7 @@ describe("ProjectsService", () => {
   it("lists the projects it has", async () => {
     prisma.project.findMany.mockResolvedValue([record("Handbook")]);
 
-    await expect(projects.list()).resolves.toEqual([
+    await expect(projects.list(TEAM)).resolves.toEqual([
       {
         createdAt: "2026-08-21T10:00:00.000Z",
         id: "universe",
@@ -54,23 +57,25 @@ describe("ProjectsService", () => {
   });
 
   it("refuses a name that is already taken", async () => {
-    prisma.project.findUnique.mockResolvedValue(record("Handbook"));
+    prisma.project.findFirst.mockResolvedValue(record("Handbook"));
 
-    await expect(projects.create("Handbook")).rejects.toBeInstanceOf(
+    await expect(projects.create(TEAM, "Handbook")).rejects.toBeInstanceOf(
       ConflictException,
     );
   });
 
   it("renames a project", async () => {
     prisma.project.updateMany.mockResolvedValue({ count: 1 });
-    prisma.project.findUnique.mockResolvedValue(record("Night audit"));
+    prisma.project.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValue(record("Night audit"));
 
     await expect(
-      projects.rename("universe", "  Night audit  "),
+      projects.rename(TEAM, "universe", "  Night audit  "),
     ).resolves.toMatchObject({ name: "Night audit" });
     expect(prisma.project.updateMany).toHaveBeenCalledWith({
       data: { name: "Night audit" },
-      where: { id: "universe" },
+      where: { id: "universe", organizationId: TEAM },
     });
   });
 
@@ -78,33 +83,40 @@ describe("ProjectsService", () => {
     prisma.project.findFirst.mockResolvedValue(record("Handbook"));
 
     await expect(
-      projects.rename("universe", "Handbook"),
+      projects.rename(TEAM, "universe", "Handbook"),
     ).rejects.toBeInstanceOf(ConflictException);
     expect(prisma.project.updateMany).not.toHaveBeenCalled();
   });
 
   it("lets a project keep its own name", async () => {
     prisma.project.updateMany.mockResolvedValue({ count: 1 });
+    prisma.project.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValue(record("Handbook"));
 
-    await projects.rename("universe", "Handbook");
+    await projects.rename(TEAM, "universe", "Handbook");
 
     expect(prisma.project.findFirst).toHaveBeenCalledWith({
-      where: { id: { not: "universe" }, name: "Handbook" },
+      where: {
+        id: { not: "universe" },
+        name: "Handbook",
+        organizationId: TEAM,
+      },
     });
   });
 
   it("reports a rename of a project that is gone", async () => {
     prisma.project.updateMany.mockResolvedValue({ count: 0 });
 
-    await expect(projects.rename("gone", "Anything")).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(
+      projects.rename(TEAM, "gone", "Anything"),
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it("reports a delete that matched nothing", async () => {
     prisma.project.deleteMany.mockResolvedValue({ count: 0 });
 
-    await expect(projects.remove("gone")).rejects.toBeInstanceOf(
+    await expect(projects.remove(TEAM, "gone")).rejects.toBeInstanceOf(
       NotFoundException,
     );
   });

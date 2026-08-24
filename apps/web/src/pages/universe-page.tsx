@@ -14,6 +14,7 @@ import { RepeatLevel } from "@/components/repeat-level";
 import { WordInspector } from "@/components/word-inspector";
 import { WordList } from "@/components/word-list";
 import { attempt } from "@/stores/failure-store";
+import { $viewer } from "@/stores/viewer-store";
 import { $lintReport, $notesByChunk, checkLinters } from "@/stores/lint-store";
 import {
   $currentProjectId,
@@ -56,6 +57,7 @@ const COLUMN_TITLE =
 
 export const UniversePage = (): JSX.Element => {
   const projectId = useStore($currentProjectId);
+  const viewer = useStore($viewer);
   const projects = useStore($projects);
   const sidebarOpen = useStore($sidebarOpen);
   const chunks = useStore($chunks);
@@ -172,11 +174,12 @@ export const UniversePage = (): JSX.Element => {
         <div className="flex items-center gap-3 border-b border-line px-3 py-2">
           <button
             aria-expanded={sidebarOpen}
+            aria-label="Team and projects"
             onClick={toggleSidebar}
-            title="Projects"
+            title="Team and projects"
             type="button"
           >
-            ☰ Projects
+            ☰ {viewer?.organization.name ?? "Team"}
           </button>
           <span className="truncate text-faint" data-testid="open-project">
             {projects.find((project) => project.id === projectId)?.name ??

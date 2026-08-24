@@ -11,3 +11,4 @@ apps/api/src/generated/
 .stryker-tmp/
 .stryker-incremental.json
 *.tsbuildinfo
+tests/.auth

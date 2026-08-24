@@ -14,9 +14,11 @@ const prisma = {
     findMany: vi.fn<(args: Args) => Promise<ChunkRecord[]>>(),
   },
   project: {
-    findUnique: vi.fn<(args: Args) => Promise<null | { id: string }>>(),
+    findFirst: vi.fn<(args: Args) => Promise<null | { id: string }>>(),
   },
 };
+
+const TEAM = "8f1a5c62-0f7a-4a3e-9d4e-6c1b2a3d4e5f";
 
 const record = (id: string, text: string): ChunkRecord => ({
   createdAt: new Date("2026-08-21T10:00:00.000Z"),
@@ -30,7 +32,7 @@ describe("ChunksService", () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    prisma.project.findUnique.mockResolvedValue({ id: "universe" });
+    prisma.project.findFirst.mockResolvedValue({ id: "universe" });
 
     const moduleRef = await Test.createTestingModule({
       providers: [ChunksService, { provide: PrismaService, useValue: prisma }],
@@ -44,7 +46,7 @@ describe("ChunksService", () => {
       record("1", "A rule."),
     ]);
 
-    await chunks.createMany("universe", ["  ", "A rule.", "\n"]);
+    await chunks.createMany(TEAM, "universe", ["  ", "A rule.", "\n"]);
 
     expect(prisma.chunk.createManyAndReturn).toHaveBeenCalledWith({
       data: [{ projectId: "universe", text: "A rule." }],
@@ -52,33 +54,45 @@ describe("ChunksService", () => {
   });
 
   it("writes nothing when a sheet cut down to nothing", async () => {
-    const created = await chunks.createMany("universe", ["   ", ""]);
+    const created = await chunks.createMany(TEAM, "universe", ["   ", ""]);
 
     expect(created).toEqual([]);
     expect(prisma.chunk.createManyAndReturn).not.toHaveBeenCalled();
   });
 
   it("refuses to attach chunks to a project that is gone", async () => {
-    prisma.project.findUnique.mockResolvedValue(null);
+    prisma.project.findFirst.mockResolvedValue(null);
 
-    await expect(chunks.createMany("gone", ["A rule."])).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(
+      chunks.createMany(TEAM, "gone", ["A rule."]),
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it("reports a delete that matched nothing", async () => {
     prisma.chunk.deleteMany.mockResolvedValue({ count: 0 });
 
-    await expect(chunks.remove("universe", "gone")).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(
+      chunks.remove(TEAM, "universe", "gone"),
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it("refuses a project that belongs to another team", async () => {
+    prisma.project.findFirst.mockResolvedValue(null);
+
+    await expect(
+      chunks.listByProject("another-team", "universe"),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(prisma.project.findFirst).toHaveBeenCalledWith({
+      select: { id: true },
+      where: { id: "universe", organizationId: "another-team" },
+    });
   });
 
   it("refuses to delete a chunk that belongs to another project", async () => {
     prisma.chunk.deleteMany.mockResolvedValue({ count: 0 });
 
     await expect(
-      chunks.remove("other-universe", "chunk-1"),
+      chunks.remove(TEAM, "other-universe", "chunk-1"),
     ).rejects.toBeInstanceOf(NotFoundException);
     expect(prisma.chunk.deleteMany).toHaveBeenCalledWith({
       where: { id: "chunk-1", projectId: "other-universe" },
@@ -88,7 +102,7 @@ describe("ChunksService", () => {
   it("hands the universe over as plain text with its arrival date", async () => {
     prisma.chunk.findMany.mockResolvedValue([record("1", "A rule.")]);
 
-    await expect(chunks.listByProject("universe")).resolves.toEqual([
+    await expect(chunks.listByProject(TEAM, "universe")).resolves.toEqual([
       {
         createdAt: "2026-08-21T10:00:00.000Z",
         id: "1",

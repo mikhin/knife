@@ -3,20 +3,39 @@ import { Test } from "@nestjs/testing";
 import type { Chunk } from "@knife/contract";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { SessionGuard } from "@/auth/session.guard";
 import { ChunksController } from "@/chunks/chunks.controller";
 import { ChunksService } from "@/chunks/chunks.service";
 import { PrismaService } from "@/db/prisma.service";
+import type { ExecutionContext } from "@nestjs/common";
+import type { SignedInRequest } from "@/auth/session.guard";
+import type { Member } from "@/generated/prisma/client";
 
 const chunks = {
-  create: vi.fn<(projectId: string, text: string) => Promise<Chunk>>(),
-  createMany: vi.fn<(projectId: string, texts: string[]) => Promise<Chunk[]>>(),
+  create:
+    vi.fn<(team: string, projectId: string, text: string) => Promise<Chunk>>(),
+  createMany:
+    vi.fn<
+      (team: string, projectId: string, texts: string[]) => Promise<Chunk[]>
+    >(),
   listByProject: vi
-    .fn<(projectId: string) => Promise<Chunk[]>>()
+    .fn<(team: string, projectId: string) => Promise<Chunk[]>>()
     .mockResolvedValue([]),
-  remove: vi.fn<(projectId: string, id: string) => Promise<void>>(),
+  remove:
+    vi.fn<(team: string, projectId: string, id: string) => Promise<void>>(),
 };
 
+const TEAM_ID = "3c9f1e2d-4a5b-4c6d-8e7f-9a0b1c2d3e4f";
 const PROJECT_ID = "8f1a5c62-0f7a-4a3e-9d4e-6c1b2a3d4e5f";
+
+/** Signed in as somebody: whose team it is has a test of its own. */
+const signedIn = {
+  canActivate: (context: ExecutionContext): boolean => {
+    const incoming = context.switchToHttp().getRequest<SignedInRequest>();
+    incoming.member = { organizationId: TEAM_ID } as Member;
+    return true;
+  },
+};
 const CHUNK_ID = "1d2c3b4a-5e6f-4a7b-8c9d-0e1f2a3b4c5d";
 
 describe("chunk routes", () => {
@@ -32,7 +51,10 @@ describe("chunk routes", () => {
         { provide: ChunksService, useValue: chunks },
         { provide: PrismaService, useValue: {} },
       ],
-    }).compile();
+    })
+      .overrideGuard(SessionGuard)
+      .useValue(signedIn)
+      .compile();
 
     app = moduleRef.createNestApplication();
     await app.init();
@@ -62,7 +84,7 @@ describe("chunk routes", () => {
       .send({ texts: ["A rule.", "Another rule."] });
 
     expect(response.status).toBe(201);
-    expect(chunks.createMany).toHaveBeenCalledWith(PROJECT_ID, [
+    expect(chunks.createMany).toHaveBeenCalledWith(TEAM_ID, PROJECT_ID, [
       "A rule.",
       "Another rule.",
     ]);
@@ -76,6 +98,6 @@ describe("chunk routes", () => {
     );
 
     expect(response.status).toBe(204);
-    expect(chunks.remove).toHaveBeenCalledWith(PROJECT_ID, CHUNK_ID);
+    expect(chunks.remove).toHaveBeenCalledWith(TEAM_ID, PROJECT_ID, CHUNK_ID);
   });
 });

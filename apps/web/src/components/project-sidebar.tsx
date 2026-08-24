@@ -4,6 +4,7 @@ import { type JSX, useEffect, useState } from "react";
 import { BinIcon, PencilIcon } from "@/components/icons";
 import { ListRow } from "@/components/list-row";
 import { DeleteDialog, NameDialog } from "@/components/project-dialogs";
+import { TeamSection } from "@/components/team-section";
 import { attempt } from "@/stores/failure-store";
 import {
   $currentProjectId,
@@ -136,6 +137,8 @@ export const ProjectSidebar = ({ onClose, open }: Props): JSX.Element => {
             </ul>
           )}
         </div>
+
+        <TeamSection open={open} />
       </aside>
 
       {asking.kind === "new" ? (

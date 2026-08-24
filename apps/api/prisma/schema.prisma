@@ -1,22 +1,66 @@
-// Two tables, and there will not be a third. Duplicates, occurrences,
-// links and linter findings are computed in the browser and never written
-// back: a stored verdict would outlive the wording it judged.
+// Text still lives in two tables, and nothing derived from it is ever written
+// back: duplicates, occurrences, links and linter findings are computed on
+// demand, because a stored verdict would outlive the wording it judged.
+//
+// The rest of the tables hold no text at all. They answer one question the
+// universe cannot answer for itself — whose it is — and they exist only
+// because the door was opened to more than one team and to agents.
 
+// The client is generated as CommonJS because the API is compiled as one:
+// the ESM client reaches for import.meta.url, which survives neither the
+// compile to CJS nor the Node that loads the result.
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-model Project {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String   @unique
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  chunks    Chunk[]
+model Organization {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  members   Member[]
+  projects  Project[]
 
+  @@map("organizations")
+}
+
+/// A person in a team. An invitation is the same row with no googleSub yet:
+/// whoever signs in with that address takes it, so inviting needs no mail
+/// server and no token that could leak.
+model Member {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  email          String
+  googleSub      String?      @unique @map("google_sub")
+  role           MemberRole   @default(MEMBER)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, email])
+  @@index([email])
+  @@map("members")
+}
+
+enum MemberRole {
+  OWNER
+  MEMBER
+}
+
+model Project {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  name           String
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  chunks         Chunk[]
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
   @@map("projects")
 }
 
@@ -29,4 +73,58 @@ model Chunk {
 
   @@index([projectId])
   @@map("chunks")
+}
+
+/// An agent's client, registered by the agent itself the first time it knocks.
+/// Nobody types these in by hand, which is the point: a person adds the server
+/// by its address and never copies a secret anywhere.
+model OAuthClient {
+  id           String   @id @map("client_id")
+  secretHash   String?  @map("secret_hash")
+  name         String
+  redirectUris String[] @map("redirect_uris")
+  scopes       String[]
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("oauth_clients")
+}
+
+/// Lives for a minute between the browser and the agent, and is stored hashed:
+/// the row is worthless to anyone who reads the table.
+model OAuthCode {
+  codeHash      String   @id @map("code_hash")
+  clientId      String   @map("client_id")
+  memberId      String   @map("member_id") @db.Uuid
+  scopes        String[]
+  codeChallenge String   @map("code_challenge")
+  redirectUri   String   @map("redirect_uri")
+  resource      String?
+  expiresAt     DateTime @map("expires_at") @db.Timestamptz(6)
+
+  @@index([expiresAt])
+  @@map("oauth_codes")
+}
+
+/// Opaque rather than self-describing, so revoking one is immediate: the token
+/// is worth nothing except as a row here, and deleting the row ends it.
+model OAuthToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  kind      TokenKind
+  clientId  String    @map("client_id")
+  memberId  String    @map("member_id") @db.Uuid
+  scopes    String[]
+  resource  String?
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(6)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([memberId])
+  @@index([expiresAt])
+  @@map("oauth_tokens")
+}
+
+enum TokenKind {
+  ACCESS
+  REFRESH
 }

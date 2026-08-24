@@ -19,6 +19,29 @@ export type Project = {
   name: string;
 };
 
+export type MemberRole = "member" | "owner";
+
+export type Teammate = {
+  email: string;
+  /** Empty until the invited person signs in for the first time. */
+  joined: boolean;
+  memberId: string;
+  role: MemberRole;
+};
+
+/** Who is asking, as far as the browser needs to know. */
+export type Viewer = {
+  email: string;
+  memberId: string;
+  organization: { id: string; name: string };
+  role: MemberRole;
+};
+
+/** Where an agent is told to connect, as this server knows its own address. */
+export type Connection = {
+  mcpUrl: string;
+};
+
 export type LintTool = "proselint" | "textlint" | "vale";
 
 export type LintFinding = {

@@ -26,7 +26,7 @@ const openProjects = async (page: Page): Promise<void> => {
   if (
     !(await sidebar.getByRole("button", { name: "New project" }).isVisible())
   ) {
-    await page.getByRole("button", { name: "Projects" }).click();
+    await page.getByRole("button", { name: "Team and projects" }).click();
   }
   await expect(
     sidebar.getByRole("button", { name: "New project" }),

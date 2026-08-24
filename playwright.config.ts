@@ -23,7 +23,11 @@ export default defineConfig({
       dependencies: ["empty"],
       name: "knife",
       testIgnore: /clean-database\.setup\.ts/,
-      use: devices["Desktop Chrome"],
+      use: {
+        ...devices["Desktop Chrome"],
+        /** Signed in as the team the setup project made. */
+        storageState: "tests/.auth/team.json",
+      },
     },
   ],
   reporter: process.env.CI ? "github" : "list",
@@ -34,19 +38,33 @@ export default defineConfig({
     baseURL: WEB_URL,
     trace: "retain-on-failure",
   },
+  /**
+   * Never adopt a server that happens to hold the port. A hand-started API
+   * on this port points at the working database, and a reused one quietly
+   * ran the whole suite against it — the guard on truncate saved the text,
+   * but the run still left its projects in a real universe. A port already
+   * taken is now an error, which is what it always was.
+   */
   webServer: [
     {
       command:
         "node tests/prepare-database.mts && pnpm --filter @knife/api dev",
-      env: { DATABASE_URL, PORT: API_PORT },
-      reuseExistingServer: !process.env.CI,
+      env: {
+        DATABASE_URL,
+        PORT: API_PORT,
+        PUBLIC_URL: API_URL,
+        /** Matches the secret the setup project signs its cookie with. */
+        SESSION_SECRET: "an-e2e-secret",
+        WEB_URL: WEB_URL,
+      },
+      reuseExistingServer: false,
       timeout: 120000,
       url: `${API_URL}/api/projects`,
     },
     {
       command: "pnpm --filter @knife/web dev",
       env: { API_URL, WEB_PORT },
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
       timeout: 120000,
       url: WEB_URL,
     },

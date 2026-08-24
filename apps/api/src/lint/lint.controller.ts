@@ -1,9 +1,18 @@
-import { Body, Controller, Get, HttpCode, Post } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  UseGuards,
+} from "@nestjs/common";
+import { SessionGuard } from "@/auth/session.guard";
 import { LintRequestDto } from "@/lint/lint-request.dto";
 import { LintService } from "@/lint/lint.service";
 import type { LintHealth, LintReport } from "@knife/contract";
 
 @Controller("api/lint")
+@UseGuards(SessionGuard)
 export class LintController {
   constructor(private readonly lint: LintService) {}
 
