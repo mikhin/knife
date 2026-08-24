@@ -1,6 +1,6 @@
 import { atom, computed } from "nanostores";
 import { chunksApi } from "@/api/chunks-api";
-import { chunkSource, detectPastedFormat } from "@knife/universe";
+import { chunkSource, detectPastedFormat, pairsAtLevel } from "@knife/universe";
 import { $similarityThreshold } from "@/stores/settings-store";
 import type { Chunk } from "@knife/contract";
 import type {
@@ -181,9 +181,7 @@ export const filterWordList = (fragment: string): void => {
 export const $duplicatesAboveThreshold = computed(
   [$report, $similarityThreshold],
   (report, threshold) =>
-    (report?.duplicates.pairs ?? []).filter(
-      (pair) => pair.similarity >= threshold,
-    ),
+    pairsAtLevel(report?.duplicates.pairs ?? [], threshold),
 );
 
 export const $danglingIds = computed(

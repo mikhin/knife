@@ -27,5 +27,11 @@ export { describeWord } from "./universe/describe-word";
 export { findDanglingChunks } from "./universe/find-dangling-chunks";
 export { findDuplicatePairs } from "./universe/find-duplicate-pairs";
 export { listWords } from "./universe/list-words";
+export {
+  pairsAtLevel,
+  REPEAT_LEVELS,
+  repeatLevel,
+} from "./universe/repeat-levels";
+export type { RepeatLevel, RepeatLevelId } from "./universe/repeat-levels";
 export { searchUniverse } from "./universe/search-universe";
 export { sharedWordSpans } from "./universe/shared-word-spans";
