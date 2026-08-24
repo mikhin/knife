@@ -4,13 +4,28 @@
   "private": true,
   "type": "module",
   "description": "Вселенная как расчёт: разрез, токены, дубли, висящие куски. Ни браузера, ни сети — одно ядро на интерфейс и на агентов.",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.cts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "default": "./src/index.ts"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "prepare": "tsup",
     "tsc": "tsc -b",
     "test": "vitest --run --reporter=dot",
     "test:watch": "vitest",
@@ -23,6 +38,7 @@
   "devDependencies": {
     "@stryker-mutator/core": "9.6.1",
     "@stryker-mutator/vitest-runner": "9.6.1",
+    "tsup": "^8.5.1",
     "typescript": "~5.9.3",
     "vitest": "^3.2.4"
   }

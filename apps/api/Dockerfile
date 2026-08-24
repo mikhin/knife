@@ -9,7 +9,12 @@ WORKDIR /repo
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY packages/contract packages/contract
+COPY packages/universe packages/universe
+# The schema travels with the manifest: installing runs prisma generate, and
+# a generate without a schema fails the build before anything is compiled.
 COPY apps/api/package.json apps/api/
+COPY apps/api/prisma apps/api/prisma
+COPY apps/api/prisma.config.ts apps/api/
 RUN pnpm install --frozen-lockfile --filter @knife/api...
 
 COPY apps/api apps/api

@@ -7,9 +7,9 @@
   },
   "packageManager": "pnpm@10.30.3",
   "scripts": {
-    "dev": "pnpm db:up && pnpm db:migrate && pnpm --parallel --filter \"./apps/*\" dev",
+    "dev": "pnpm db:up && pnpm db:migrate && pnpm --parallel --filter \"./apps/*\" --filter @knife/universe dev",
     "linters:up": "docker compose up -d linters",
-    "build": "pnpm --filter \"./apps/*\" build",
+    "build": "pnpm --filter @knife/universe build && pnpm --filter \"./apps/*\" build",
     "format:check": "oxfmt --check .",
     "format:fix": "oxfmt --write .",
     "lint:check": "oxlint -c .oxlintrc.json",
