@@ -3,7 +3,12 @@ import { chunksApi } from "@/api/chunks-api";
 import { chunkSource, detectPastedFormat } from "@knife/universe";
 import { $similarityThreshold } from "@/stores/settings-store";
 import type { Chunk } from "@knife/contract";
-import type { SearchHit, SourceFormat, WordProfile } from "@knife/universe";
+import type {
+  ChunkProfile,
+  SearchHit,
+  SourceFormat,
+  WordProfile,
+} from "@knife/universe";
 import type {
   UniverseReport,
   WorkerRequest,
@@ -14,6 +19,7 @@ export const $chunks = atom<Chunk[]>([]);
 export const $report = atom<undefined | UniverseReport>(undefined);
 export const $selectedChunkId = atom<string | undefined>(undefined);
 export const $wordProfile = atom<undefined | WordProfile>(undefined);
+export const $chunkProfile = atom<ChunkProfile | undefined>(undefined);
 export const $searchQuery = atom("");
 export const $searchHits = atom<SearchHit[] | undefined>(undefined);
 
@@ -42,6 +48,13 @@ worker.addEventListener("message", (event: MessageEvent<WorkerResponse>) => {
     return;
   }
 
+  if (response.type === "chunk") {
+    if (response.profile.id === $selectedChunkId.get()) {
+      $chunkProfile.set(response.profile);
+    }
+    return;
+  }
+
   if (response.query === $searchQuery.get()) {
     $searchHits.set(response.hits);
   }
@@ -56,6 +69,7 @@ const analyse = (chunks: Chunk[]): void => {
   asked = undefined;
   $selectedChunkId.set(undefined);
   $wordProfile.set(undefined);
+  $chunkProfile.set(undefined);
   $searchHits.set(undefined);
 
   if (chunks.length === 0) {
@@ -131,12 +145,18 @@ export const deleteChunk = async (
 export const selectChunk = (chunkId: string | undefined): void => {
   asked = undefined;
   $wordProfile.set(undefined);
+  $chunkProfile.set(undefined);
   $selectedChunkId.set(chunkId);
+
+  if (chunkId) {
+    ask({ id: chunkId, type: "chunk" });
+  }
 };
 
 export const selectWord = (stem: string): void => {
   asked = stem;
   $selectedChunkId.set(undefined);
+  $chunkProfile.set(undefined);
   ask({ stem, type: "word" });
 };
 

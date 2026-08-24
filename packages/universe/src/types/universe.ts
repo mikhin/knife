@@ -64,3 +64,16 @@ export type WordProfile = {
   occurrences: WordOccurrence[];
   stem: string;
 };
+
+export type ChunkWord = {
+  /** Chunks other than this one holding the word: 0 means it is nowhere else. */
+  elsewhere: number;
+  label: string;
+  stem: string;
+};
+
+export type ChunkProfile = {
+  id: string;
+  /** Rarest first: what this chunk alone says stands above what everyone says. */
+  words: ChunkWord[];
+};

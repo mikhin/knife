@@ -351,6 +351,29 @@ test.describe("Вселенная требований, в которой мож
     await expect(page.getByTestId("chunk-inspector")).toContainText("Peacocks");
   });
 
+  test("Хожу от чанка к его словам", async ({ page }) => {
+    await createProject(page);
+    await bringSheet(page, SHEET);
+
+    await chunkRow(page, "A shift starts at eight.").click();
+    const words = page
+      .getByTestId("chunk-inspector")
+      .locator("section", { hasText: "Made of" });
+
+    // Слово чанка названо, и рядом — сколько ещё чанков его держат
+    await expect(
+      words.getByRole("button", { name: /^shifts? 3$/ }),
+    ).toBeVisible();
+    // Редкое впереди: то, чем этот чанк единственен, стоит над общим
+    await expect(words.getByRole("button").first()).toHaveText("eight 0");
+
+    // И слово уводит в свою карточку
+    await words.getByRole("button", { name: /^shifts? 3$/ }).click();
+    await expect(page.getByTestId("word-inspector")).toContainText(
+      "Travels with",
+    );
+  });
+
   test("Выбрано всегда одно: или слово, или чанк", async ({ page }) => {
     await createProject(page);
     await bringSheet(page, SHEET);

@@ -10,6 +10,8 @@ export { detectPastedFormat } from "./chunking/detect-pasted-format";
 export type { SourceFormat } from "./types/source-format";
 export type { Token } from "./types/token";
 export type {
+  ChunkProfile,
+  ChunkWord,
   DuplicatePair,
   DuplicateReport,
   IndexedChunk,
@@ -20,6 +22,7 @@ export type {
   WordProfile,
 } from "./types/universe";
 export { buildUniverseIndex } from "./universe/build-universe-index";
+export { describeChunk } from "./universe/describe-chunk";
 export { describeWord } from "./universe/describe-word";
 export { findDanglingChunks } from "./universe/find-dangling-chunks";
 export { findDuplicatePairs } from "./universe/find-duplicate-pairs";

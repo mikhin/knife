@@ -3,7 +3,7 @@ import { HighlightedText } from "@/components/highlighted-text";
 import { sharedWordSpans } from "@knife/universe";
 import type { Chunk } from "@knife/contract";
 import type { LintFinding } from "@knife/contract";
-import type { DuplicatePair } from "@knife/universe";
+import type { ChunkWord, DuplicatePair } from "@knife/universe";
 
 type Props = {
   chunk: Chunk;
@@ -12,7 +12,9 @@ type Props = {
   lint: LintFinding[];
   onDelete: () => void;
   onOpenNeighbour: (id: string) => void;
+  onPickWord: (stem: string) => void;
   spans: Array<{ end: number; start: number }>;
+  words: ChunkWord[];
 };
 
 const HEADING = "mt-5 mb-2 text-xs tracking-wider text-faint uppercase";
@@ -24,6 +26,12 @@ const CARD = "flex flex-col gap-1 rounded-md border border-line p-2";
  * a repeat that is not there.
  */
 const SAID_TWICE = 0.6;
+
+/**
+ * A long chunk would otherwise bury the panel under its own vocabulary. What
+ * is cut off is counted below the list rather than passed over in silence.
+ */
+const MAX_WORDS = 40;
 const PLAIN_BUTTON =
   "w-full border-transparent bg-transparent p-0 text-left hover:border-transparent hover:text-accent";
 
@@ -102,7 +110,9 @@ export const ChunkInspector = ({
   lint,
   onDelete,
   onOpenNeighbour,
+  onPickWord,
   spans,
+  words,
 }: Props): JSX.Element => (
   <aside
     className="overflow-y-auto border-l border-line p-3"
@@ -122,6 +132,33 @@ export const ChunkInspector = ({
     <p className="mt-3 text-[15px] leading-relaxed break-words">
       <HighlightedText spans={spans} text={chunk.text} />
     </p>
+
+    {words.length > 0 ? (
+      <section>
+        <h3 className={HEADING}>Made of</h3>
+        <ul className="flex flex-wrap gap-1">
+          {words.slice(0, MAX_WORDS).map((word) => (
+            <li key={word.stem}>
+              <button
+                className="px-2 py-0.5 text-xs"
+                onClick={() => {
+                  onPickWord(word.stem);
+                }}
+                type="button"
+              >
+                {word.label}
+                <span className="text-faint"> {word.elsewhere}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+        {words.length > MAX_WORDS ? (
+          <p className="mt-2 text-xs text-faint">
+            and {words.length - MAX_WORDS} more
+          </p>
+        ) : null}
+      </section>
+    ) : null}
 
     {isDangling ? (
       <section>

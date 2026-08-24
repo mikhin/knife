@@ -35,6 +35,7 @@ import { filterWords } from "@/services/lists/filter-words";
 import { sortChunks } from "@/services/lists/sort-chunks";
 import { sortWords } from "@/services/lists/sort-words";
 import {
+  $chunkProfile,
   $chunks,
   $danglingIds,
   $duplicatesAboveThreshold,
@@ -58,6 +59,7 @@ export const UniversePage = (): JSX.Element => {
   const projects = useStore($projects);
   const sidebarOpen = useStore($sidebarOpen);
   const chunks = useStore($chunks);
+  const chunkProfile = useStore($chunkProfile);
   const report = useStore($report);
   const duplicates = useStore($duplicatesAboveThreshold);
   const danglingIds = useStore($danglingIds);
@@ -297,7 +299,9 @@ export const UniversePage = (): JSX.Element => {
                 attempt(deleteChunk(projectId, selectedChunk.id));
               }}
               onOpenNeighbour={selectChunk}
+              onPickWord={selectWord}
               spans={spansByChunk.get(selectedChunk.id) ?? []}
+              words={chunkProfile?.words ?? []}
             />
           ) : null}
 

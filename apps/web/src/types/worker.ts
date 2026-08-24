@@ -1,5 +1,6 @@
 import type { Chunk } from "@knife/contract";
 import type {
+  ChunkProfile,
   DuplicateReport,
   SearchHit,
   WordCount,
@@ -18,10 +19,12 @@ export type UniverseReport = {
 
 export type WorkerRequest =
   | { chunks: Chunk[]; type: "analyse" }
+  | { id: string; type: "chunk" }
   | { query: string; type: "search" }
   | { stem: string; type: "word" };
 
 export type WorkerResponse =
   | { hits: SearchHit[]; query: string; type: "search" }
+  | { profile: ChunkProfile; type: "chunk" }
   | { profile: WordProfile; type: "word" }
   | { report: UniverseReport; type: "analysed" };

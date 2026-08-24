@@ -1,5 +1,6 @@
 import {
   buildUniverseIndex,
+  describeChunk,
   describeWord,
   findDanglingChunks,
   findDuplicatePairs,
@@ -53,6 +54,11 @@ self.addEventListener("message", (event: MessageEvent<WorkerRequest>) => {
       query: request.query,
       type: "search",
     });
+    return;
+  }
+
+  if (request.type === "chunk") {
+    post({ profile: describeChunk(index, request.id), type: "chunk" });
     return;
   }
 
