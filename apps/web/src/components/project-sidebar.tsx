@@ -1,10 +1,11 @@
 import type { Project } from "@knife/contract";
 import { useStore } from "@nanostores/react";
 import { type JSX, useEffect, useState } from "react";
-import { BinIcon, PencilIcon } from "@/components/icons";
+import { BinIcon, PencilIcon, ShareIcon } from "@/components/icons";
 import { ListRow } from "@/components/list-row";
 import { DeleteDialog, NameDialog } from "@/components/project-dialogs";
-import { TeamSection } from "@/components/team-section";
+import { ShareDialog } from "@/components/share-dialog";
+import { ViewerSection } from "@/components/viewer-section";
 import { attempt } from "@/stores/failure-store";
 import {
   $currentProjectId,
@@ -22,7 +23,7 @@ type Props = {
 };
 
 type Asking =
-  | { kind: "delete" | "rename"; project: Project }
+  | { kind: "delete" | "rename" | "share"; project: Project }
   | { kind: "new" | "none" };
 
 /** Small enough to sit on the row without crowding the name off it. */
@@ -98,30 +99,49 @@ export const ProjectSidebar = ({ onClose, open }: Props): JSX.Element => {
               {projects.map((project) => (
                 <ListRow
                   actions={
-                    <>
-                      <button
-                        aria-label="Rename"
-                        className={ROW_ACTION}
-                        onClick={() => {
-                          setAsking({ kind: "rename", project });
-                        }}
-                        title="Rename"
-                        type="button"
-                      >
-                        <PencilIcon />
-                      </button>
-                      <button
-                        aria-label="Delete"
-                        className={`${ROW_ACTION} hover:border-dup hover:text-dup`}
-                        onClick={() => {
-                          setAsking({ kind: "delete", project });
-                        }}
-                        title="Delete"
-                        type="button"
-                      >
-                        <BinIcon />
-                      </button>
-                    </>
+                    project.mine ? (
+                      <>
+                        <button
+                          aria-label={`Share ${project.name}`}
+                          className={ROW_ACTION}
+                          onClick={() => {
+                            setAsking({ kind: "share", project });
+                          }}
+                          title="Share"
+                          type="button"
+                        >
+                          <ShareIcon />
+                        </button>
+                        <button
+                          aria-label="Rename"
+                          className={ROW_ACTION}
+                          onClick={() => {
+                            setAsking({ kind: "rename", project });
+                          }}
+                          title="Rename"
+                          type="button"
+                        >
+                          <PencilIcon />
+                        </button>
+                        <button
+                          aria-label="Delete"
+                          className={`${ROW_ACTION} hover:border-dup hover:text-dup`}
+                          onClick={() => {
+                            setAsking({ kind: "delete", project });
+                          }}
+                          title="Delete"
+                          type="button"
+                        >
+                          <BinIcon />
+                        </button>
+                      </>
+                    ) : (
+                      /** Somebody else's universe: it is theirs to rename or
+                       * to take away, and saying whose is the whole hint. */
+                      <span className="shrink-0 truncate text-xs text-faint">
+                        {project.owner}
+                      </span>
+                    )
                   }
                   className="truncate"
                   isSelected={project.id === currentId}
@@ -138,8 +158,12 @@ export const ProjectSidebar = ({ onClose, open }: Props): JSX.Element => {
           )}
         </div>
 
-        <TeamSection open={open} />
+        <ViewerSection open={open} />
       </aside>
+
+      {asking.kind === "share" ? (
+        <ShareDialog onClose={close} project={asking.project} />
+      ) : null}
 
       {asking.kind === "new" ? (
         <NameDialog

@@ -234,18 +234,18 @@ export class KnifeOAuthProvider implements OAuthServerProvider {
       throw new InvalidTokenError("This token was issued for another resource");
     }
 
-    const member = await this.prisma.member.findUnique({
-      select: { id: true, organizationId: true },
+    const user = await this.prisma.user.findUnique({
+      select: { id: true },
       where: { id: stored.memberId },
     });
-    if (!member) {
+    if (!user) {
       throw new InvalidTokenError("The person behind this token is gone");
     }
 
     return {
       clientId: stored.clientId,
       expiresAt: seconds(stored.expiresAt),
-      extra: { memberId: member.id, organizationId: member.organizationId },
+      extra: { userId: user.id },
       resource: new URL(this.resource),
       scopes: stored.scopes,
       token,

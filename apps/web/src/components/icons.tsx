@@ -26,6 +26,13 @@ export const BinIcon = (): JSX.Element => (
   </svg>
 );
 
+/** Two people: the project can be opened to somebody by name. */
+export const ShareIcon = (): JSX.Element => (
+  <svg {...SVG}>
+    <path d="M6 7.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4M2 13c0-2 1.8-3.5 4-3.5s4 1.5 4 3.5M10.5 4.2a2 2 0 0 1 0 3.6M12 9.8c1.3.5 2 1.7 2 3.2" />
+  </svg>
+);
+
 /** A cut diamond: the linters go over the wording facet by facet. */
 export const DiamondIcon = (): JSX.Element => (
   <svg {...SVG}>

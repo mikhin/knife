@@ -10,7 +10,6 @@ import {
   UnauthorizedException,
   UseGuards,
 } from "@nestjs/common";
-import { MembersService } from "@/auth/members.service";
 import { SessionGuard } from "@/auth/session.guard";
 import { SignedIn } from "@/auth/signed-in.decorator";
 import { SessionService } from "@/auth/session.service";
@@ -21,7 +20,7 @@ import {
   KnifeOAuthProvider,
 } from "@/mcp/oauth/knife-oauth.provider";
 import { OAuthClientsStore } from "@/mcp/oauth/oauth-clients.store";
-import type { Member } from "@/generated/prisma/client";
+import type { User } from "@/generated/prisma/client";
 import type { Response } from "express";
 
 const TICKET_TTL_MS = 5 * 60 * 1000;
@@ -49,7 +48,7 @@ const asAuthorizeUrl = (to: string): URL => {
 
 const page = (
   agent: string,
-  team: string,
+  person: string,
   scopes: string[],
   to: string,
   ticket: string,
@@ -80,7 +79,7 @@ const page = (
 <body>
 <main>
   <h1>${escape(agent)} wants into your universe</h1>
-  <p class="team">Team <strong>${escape(team)}</strong></p>
+  <p class="team">Signed in as <strong>${escape(person)}</strong></p>
   <p>If you allow it, this agent will be able to:</p>
   <ul>${scopes
     .map((scope) => `<li>${escape(SCOPE_MEANING[scope] ?? scope)}</li>`)
@@ -107,7 +106,6 @@ const page = (
 export class ConsentController {
   constructor(
     private readonly clients: OAuthClientsStore,
-    private readonly members: MembersService,
     private readonly oauth: KnifeOAuthProvider,
     private readonly sessions: SessionService,
   ) {}
@@ -116,7 +114,7 @@ export class ConsentController {
   @Header("cache-control", "no-store")
   @Header("content-type", "text/html; charset=utf-8")
   async ask(
-    @SignedIn() member: Member,
+    @SignedIn() viewer: User,
     @Query("to") to: string | undefined,
   ): Promise<string> {
     const authorize = asAuthorizeUrl(to ?? "");
@@ -131,27 +129,25 @@ export class ConsentController {
       .split(" ")
       .filter(Boolean);
 
-    const viewer = await this.members.viewer(member);
-
     return page(
       client.client_name ?? "An agent",
-      viewer.organization.name,
+      viewer.email,
       scopes,
       to ?? "",
-      this.sessions.sign(`${member.id}:${to ?? ""}`, TICKET_TTL_MS),
+      this.sessions.sign(`${viewer.id}:${to ?? ""}`, TICKET_TTL_MS),
     );
   }
 
   @Post()
   decide(
-    @SignedIn() member: Member,
+    @SignedIn() viewer: User,
     @Body() dto: ConsentDto,
     @Res() response: Response,
   ): void {
     const authorize = asAuthorizeUrl(dto.to);
 
     /** The ticket is what makes this a decision and not a link someone sent. */
-    if (this.sessions.read(dto.ticket) !== `${member.id}:${dto.to}`) {
+    if (this.sessions.read(dto.ticket) !== `${viewer.id}:${dto.to}`) {
       throw new UnauthorizedException("This request did not start here");
     }
 
@@ -163,7 +159,7 @@ export class ConsentController {
     const clientId = authorize.searchParams.get("client_id") ?? "";
     authorize.searchParams.set(
       CONSENT_PARAM,
-      this.oauth.consentFor(clientId, member.id),
+      this.oauth.consentFor(clientId, viewer.id),
     );
 
     response.redirect(`${authorize.pathname}${authorize.search}`);

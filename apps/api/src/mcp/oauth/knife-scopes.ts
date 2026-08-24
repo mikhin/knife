@@ -9,6 +9,6 @@ export const WRITE_SCOPE = "knife:write";
 export const KNIFE_SCOPES = [READ_SCOPE, WRITE_SCOPE] as const;
 
 export const SCOPE_MEANING: Record<string, string> = {
-  [READ_SCOPE]: "Read your team's universes: chunks, repeats, words",
+  [READ_SCOPE]: "Read the universes you can reach: chunks, repeats, words",
   [WRITE_SCOPE]: "Delete chunks and add new ones. Deleting cannot be undone",
 };

@@ -1,12 +1,7 @@
 import {
-  Body,
   Controller,
-  Delete,
-  ForbiddenException,
   Get,
   HttpCode,
-  Param,
-  ParseUUIDPipe,
   Post,
   Query,
   Res,
@@ -14,13 +9,12 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { GoogleService } from "@/auth/google.service";
-import { InviteDto } from "@/auth/invite.dto";
-import { MembersService } from "@/auth/members.service";
+import { UsersService } from "@/auth/users.service";
 import { SESSION_COOKIE, SessionService } from "@/auth/session.service";
 import { SessionGuard } from "@/auth/session.guard";
 import { SignedIn } from "@/auth/signed-in.decorator";
-import type { Member } from "@/generated/prisma/client";
-import type { Connection, Teammate, Viewer } from "@knife/contract";
+import type { User } from "@/generated/prisma/client";
+import type { Connection, Viewer } from "@knife/contract";
 import type { CookieOptions, Response } from "express";
 
 /**
@@ -58,7 +52,7 @@ export class AuthController {
   constructor(
     config: ConfigService,
     private readonly google: GoogleService,
-    private readonly members: MembersService,
+    private readonly users: UsersService,
     private readonly sessions: SessionService,
   ) {
     this.publicUrl = config
@@ -97,11 +91,11 @@ export class AuthController {
     }
 
     const profile = await this.google.profileFor(code, this.callbackUrl);
-    const member = await this.members.signIn(profile);
+    const user = await this.users.signIn(profile);
 
     response.cookie(
       SESSION_COOKIE,
-      this.sessions.sign(member.id),
+      this.sessions.sign(user.id),
       this.cookieOptions,
     );
     response.redirect(
@@ -111,8 +105,8 @@ export class AuthController {
 
   @Get("me")
   @UseGuards(SessionGuard)
-  me(@SignedIn() member: Member): Promise<Viewer> {
-    return this.members.viewer(member);
+  me(@SignedIn() viewer: User): Viewer {
+    return this.users.viewer(viewer);
   }
 
   @Post("logout")
@@ -128,33 +122,6 @@ export class AuthController {
     return { mcpUrl: `${this.publicUrl}/mcp` };
   }
 
-  @Get("team")
-  @UseGuards(SessionGuard)
-  team(@SignedIn() member: Member): Promise<Teammate[]> {
-    return this.members.teammates(member.organizationId);
-  }
-
-  @Post("team")
-  @UseGuards(SessionGuard)
-  invite(
-    @SignedIn() member: Member,
-    @Body() dto: InviteDto,
-  ): Promise<Teammate> {
-    this.assertOwner(member);
-    return this.members.invite(member.organizationId, dto.email);
-  }
-
-  @Delete("team/:memberId")
-  @HttpCode(204)
-  @UseGuards(SessionGuard)
-  remove(
-    @SignedIn() member: Member,
-    @Param("memberId", ParseUUIDPipe) memberId: string,
-  ): Promise<void> {
-    this.assertOwner(member);
-    return this.members.remove(member.organizationId, memberId);
-  }
-
   private get callbackUrl(): string {
     return `${this.publicUrl}/api/auth/google/callback`;
   }
@@ -167,11 +134,5 @@ export class AuthController {
       sameSite: "lax",
       secure: this.secure,
     };
-  }
-
-  private assertOwner(member: Member): void {
-    if (member.role !== "OWNER") {
-      throw new ForbiddenException("Only an owner changes the team");
-    }
   }
 }

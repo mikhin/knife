@@ -1,9 +1,8 @@
 import { atom } from "nanostores";
 import { authApi } from "@/api/auth-api";
-import type { Connection, Teammate, Viewer } from "@knife/contract";
+import type { Connection, Viewer } from "@knife/contract";
 
 export const $viewer = atom<undefined | Viewer>(undefined);
-export const $team = atom<Teammate[]>([]);
 export const $connection = atom<Connection | undefined>(undefined);
 
 /**
@@ -23,29 +22,13 @@ export const loadViewer = async (): Promise<void> => {
   }
 };
 
-export const loadTeam = async (): Promise<void> => {
-  const [team, connection] = await Promise.all([
-    authApi.team(),
-    authApi.connection(),
-  ]);
-  $team.set(team);
-  $connection.set(connection);
-};
-
-export const inviteTeammate = async (email: string): Promise<void> => {
-  await authApi.invite(email);
-  await loadTeam();
-};
-
-export const removeTeammate = async (memberId: string): Promise<void> => {
-  await authApi.removeTeammate(memberId);
-  await loadTeam();
+export const loadConnection = async (): Promise<void> => {
+  $connection.set(await authApi.connection());
 };
 
 export const signOut = async (): Promise<void> => {
   await authApi.logout();
   $viewer.set(undefined);
-  $team.set([]);
   window.location.assign("/");
 };
 

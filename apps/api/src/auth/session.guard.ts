@@ -5,12 +5,12 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { cookieFrom } from "@/auth/cookie";
-import { MembersService } from "@/auth/members.service";
+import { UsersService } from "@/auth/users.service";
 import { SESSION_COOKIE, SessionService } from "@/auth/session.service";
-import type { Member } from "@/generated/prisma/client";
+import type { User } from "@/generated/prisma/client";
 import type { Request } from "express";
 
-export type SignedInRequest = Request & { member?: Member };
+export type SignedInRequest = Request & { user?: User };
 
 /**
  * Everything a browser reaches goes through here. Until this existed, the
@@ -19,24 +19,24 @@ export type SignedInRequest = Request & { member?: Member };
 @Injectable()
 export class SessionGuard implements CanActivate {
   constructor(
-    private readonly members: MembersService,
+    private readonly users: UsersService,
     private readonly sessions: SessionService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<SignedInRequest>();
-    const memberId = this.sessions.read(cookieFrom(request, SESSION_COOKIE));
+    const userId = this.sessions.read(cookieFrom(request, SESSION_COOKIE));
 
-    if (!memberId) {
+    if (!userId) {
       throw new UnauthorizedException("Sign in first");
     }
 
-    const member = await this.members.byId(memberId);
-    if (!member) {
+    const user = await this.users.byId(userId);
+    if (!user) {
       throw new UnauthorizedException("This account is gone");
     }
 
-    request.member = member;
+    request.user = user;
     return true;
   }
 }

@@ -14,7 +14,7 @@ import { SignedIn } from "@/auth/signed-in.decorator";
 import { ChunksService } from "@/chunks/chunks.service";
 import { CreateChunkDto } from "@/chunks/create-chunk.dto";
 import { CreateChunksDto } from "@/chunks/create-chunks.dto";
-import type { Member } from "@/generated/prisma/client";
+import type { User } from "@/generated/prisma/client";
 import type { Chunk } from "@knife/contract";
 
 /**
@@ -29,37 +29,37 @@ export class ChunksController {
 
   @Get("projects/:projectId/chunks")
   list(
-    @SignedIn() member: Member,
+    @SignedIn() viewer: User,
     @Param("projectId", ParseUUIDPipe) projectId: string,
   ): Promise<Chunk[]> {
-    return this.chunks.listByProject(member.organizationId, projectId);
+    return this.chunks.listByProject(viewer, projectId);
   }
 
   @Post("projects/:projectId/chunks")
   create(
-    @SignedIn() member: Member,
+    @SignedIn() viewer: User,
     @Param("projectId", ParseUUIDPipe) projectId: string,
     @Body() dto: CreateChunkDto,
   ): Promise<Chunk> {
-    return this.chunks.create(member.organizationId, projectId, dto.text);
+    return this.chunks.create(viewer, projectId, dto.text);
   }
 
   @Post("projects/:projectId/chunks/bulk")
   createMany(
-    @SignedIn() member: Member,
+    @SignedIn() viewer: User,
     @Param("projectId", ParseUUIDPipe) projectId: string,
     @Body() dto: CreateChunksDto,
   ): Promise<Chunk[]> {
-    return this.chunks.createMany(member.organizationId, projectId, dto.texts);
+    return this.chunks.createMany(viewer, projectId, dto.texts);
   }
 
   @Delete("projects/:projectId/chunks/:id")
   @HttpCode(204)
   remove(
-    @SignedIn() member: Member,
+    @SignedIn() viewer: User,
     @Param("projectId", ParseUUIDPipe) projectId: string,
     @Param("id", ParseUUIDPipe) id: string,
   ): Promise<void> {
-    return this.chunks.remove(member.organizationId, projectId, id);
+    return this.chunks.remove(viewer, projectId, id);
   }
 }

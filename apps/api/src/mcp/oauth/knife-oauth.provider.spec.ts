@@ -12,14 +12,10 @@ import type { Response } from "express";
 const PUBLIC_URL = "https://knife.example.com";
 const RESOURCE = `${PUBLIC_URL}/mcp`;
 const MEMBER = "6b1e2f3a-4c5d-4e6f-8a9b-0c1d2e3f4a5b";
-const TEAM = "3c9f1e2d-4a5b-4c6d-8e7f-9a0b1c2d3e4f";
 
 type Args = Record<string, unknown>;
 
 const prisma = {
-  member: {
-    findUnique: vi.fn<(args: Args) => Promise<Args | null>>(),
-  },
   oAuthCode: {
     create: vi.fn<(args: Args) => Promise<Args>>(),
     delete: vi.fn<(args: Args) => Promise<Args>>(),
@@ -30,6 +26,9 @@ const prisma = {
     findUnique: vi.fn<(args: Args) => Promise<Args | null>>(),
     update: vi.fn<(args: Args) => Promise<Args>>(),
     updateMany: vi.fn<(args: Args) => Promise<{ count: number }>>(),
+  },
+  user: {
+    findUnique: vi.fn<(args: Args) => Promise<Args | null>>(),
   },
 };
 
@@ -99,10 +98,7 @@ const params = {
 describe("KnifeOAuthProvider", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    prisma.member.findUnique.mockResolvedValue({
-      id: MEMBER,
-      organizationId: TEAM,
-    });
+    prisma.user.findUnique.mockResolvedValue({ id: MEMBER });
   });
 
   describe("granting a pass", () => {
@@ -218,12 +214,12 @@ describe("KnifeOAuthProvider", () => {
   });
 
   describe("checking a pass", () => {
-    it("says which team the bearer belongs to", async () => {
+    it("says which person the bearer is", async () => {
       prisma.oAuthToken.findUnique.mockResolvedValue(storedToken());
 
       const auth = await provider().verifyAccessToken("a-pass");
 
-      expect(auth.extra).toMatchObject({ organizationId: TEAM });
+      expect(auth.extra).toMatchObject({ userId: MEMBER });
       expect(auth.scopes).toEqual([READ_SCOPE]);
     });
 

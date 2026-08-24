@@ -23,11 +23,22 @@ RUN case "${TARGETARCH}" in \
 RUN npm install -g --no-fund --no-audit \
       textlint@15.2.1 \
       textlint-rule-write-good@2.0.0 \
-      textlint-rule-no-todo@2.0.1
+      textlint-rule-no-todo@2.0.1 \
+      textlint-rule-terminology@5.2.16 \
+      textlint-rule-common-misspellings@1.0.1 \
+      textlint-rule-en-max-word-count@2.0.1
 
 WORKDIR /app
+
+# Harper is a library, not a binary: it runs inside the server, not beside it.
+COPY package.json ./
+RUN npm install --no-fund --no-audit
+
 COPY .vale.ini .textlintrc.json server.mjs ./
-RUN vale sync || true
+
+# Without the styles it declares, Vale falls back to a handful of built-in rules
+# and says almost nothing, so a failure here must stop the build.
+RUN vale sync
 
 ENV PORT=8081
 EXPOSE 8081

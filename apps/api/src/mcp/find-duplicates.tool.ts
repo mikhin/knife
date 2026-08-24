@@ -1,8 +1,10 @@
 import { Injectable } from "@nestjs/common";
+import { UsersService } from "@/auth/users.service";
 import { renderDuplicates } from "@/mcp/render-duplicates";
 import { UniverseIndexService } from "@/mcp/universe-index.service";
 import { ProjectsService } from "@/projects/projects.service";
 import { findDuplicatePairs, pairsAtLevel, repeatLevel } from "@knife/universe";
+import type { User } from "@/generated/prisma/client";
 import type { Project } from "@knife/contract";
 import type { RepeatLevelId, UniverseIndex } from "@knife/universe";
 
@@ -14,16 +16,18 @@ export class FindDuplicatesTool {
   constructor(
     private readonly projects: ProjectsService,
     private readonly universe: UniverseIndexService,
+    private readonly users: UsersService,
   ) {}
 
   async run(
-    organizationId: string,
+    userId: string,
     project: string,
     level: RepeatLevelId,
     limit: number,
   ): Promise<string> {
-    const found = await this.projectNamed(organizationId, project);
-    const index = await this.universe.of(organizationId, found.id);
+    const viewer = await this.person(userId);
+    const found = await this.projectNamed(viewer, project);
+    const index = await this.universe.of(viewer, found.id);
     const report = findDuplicatePairs(index);
     const chosen = repeatLevel(level);
     const matched = pairsAtLevel(report.pairs, chosen.from);
@@ -49,18 +53,23 @@ export class FindDuplicatesTool {
    * around would spend a call learning one. A miss answers with the names
    * that do exist, so the next call is right rather than another guess.
    */
-  private async projectNamed(
-    organizationId: string,
-    name: string,
-  ): Promise<Project> {
+  private async person(userId: string): Promise<User> {
+    const viewer = await this.users.byId(userId);
+    if (!viewer) {
+      throw new Error("The person this pass names is gone");
+    }
+    return viewer;
+  }
+
+  private async projectNamed(viewer: User, name: string): Promise<Project> {
     const wanted = name.trim();
-    const found = await this.projects.byName(organizationId, wanted);
+    const found = await this.projects.byName(viewer, wanted);
 
     if (!found) {
-      const projects = await this.projects.list(organizationId);
+      const projects = await this.projects.list(viewer);
       const known = projects.map((project) => project.name).join(", ");
       throw new Error(
-        `No project named "${wanted}". ${known ? `Your team has: ${known}` : "Your team has no projects yet"}`,
+        `No project named "${wanted}". ${known ? `You can reach: ${known}` : "You have no projects yet"}`,
       );
     }
 

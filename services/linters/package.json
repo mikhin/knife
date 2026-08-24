@@ -1,0 +1,8 @@
+{
+  "name": "@knife/linters",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "harper.js": "2.7.0"
+  }
+}

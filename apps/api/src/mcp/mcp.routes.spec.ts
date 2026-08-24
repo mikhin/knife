@@ -9,14 +9,14 @@ import { READ_SCOPE, WRITE_SCOPE } from "@/mcp/oauth/knife-scopes";
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import type { NextFunction, Request, Response } from "express";
 
-const TEAM = "3c9f1e2d-4a5b-4c6d-8e7f-9a0b1c2d3e4f";
-const OTHER_TEAM = "9d8c7b6a-5e4f-4a3b-8c2d-1e0f9a8b7c6d";
+const PERSON = "3c9f1e2d-4a5b-4c6d-8e7f-9a0b1c2d3e4f";
+const SOMEBODY_ELSE = "9d8c7b6a-5e4f-4a3b-8c2d-1e0f9a8b7c6d";
 
 const duplicates = {
   run: vi
     .fn<
       (
-        team: string,
+        userId: string,
         project: string,
         level: string,
         limit: number,
@@ -28,9 +28,9 @@ const duplicates = {
 /** Stands in for the pass the bearer middleware would have checked. */
 let carrying: AuthInfo | undefined;
 
-const pass = (scopes: string[], organizationId: string): AuthInfo => ({
+const pass = (scopes: string[], userId: string): AuthInfo => ({
   clientId: "an-agent",
-  extra: { memberId: "a-person", organizationId },
+  extra: { userId },
   scopes,
   token: "a-pass",
 });
@@ -83,7 +83,7 @@ describe("mcp door", () => {
   });
 
   it("offers the tool it has", async () => {
-    carrying = pass([READ_SCOPE], TEAM);
+    carrying = pass([READ_SCOPE], PERSON);
 
     const response = await speak(app, {
       id: 1,
@@ -97,19 +97,19 @@ describe("mcp door", () => {
   });
 
   /**
-   * The team comes from the pass. An agent that could name one would only
-   * have to guess a uuid to read a universe belonging to strangers.
+   * The person comes from the pass. An agent that could name one would only
+   * have to guess a uuid to read a universe belonging to a stranger.
    */
-  it("answers about the team the pass names, not the one asked for", async () => {
-    carrying = pass([READ_SCOPE], TEAM);
+  it("answers for the person the pass names, not the one asked for", async () => {
+    carrying = pass([READ_SCOPE], PERSON);
 
     const response = await callDuplicates(app, {
-      organizationId: OTHER_TEAM,
       project: "night-audit",
+      userId: SOMEBODY_ELSE,
     });
 
     expect(duplicates.run).toHaveBeenCalledWith(
-      TEAM,
+      PERSON,
       "night-audit",
       "almost",
       20,
@@ -122,12 +122,12 @@ describe("mcp door", () => {
 
     const response = await callDuplicates(app, { project: "night-audit" });
 
-    expect(said(response.body)).toContain("This pass names no team");
+    expect(said(response.body)).toContain("This pass names nobody");
   });
 
   /** Reading and deleting are separate grants, and this is where that begins. */
   it("turns away a pass that was never allowed to read", async () => {
-    carrying = pass([WRITE_SCOPE], TEAM);
+    carrying = pass([WRITE_SCOPE], PERSON);
 
     const response = await callDuplicates(app, { project: "night-audit" });
 
@@ -135,7 +135,7 @@ describe("mcp door", () => {
   });
 
   it("has nothing to stream on its own", async () => {
-    carrying = pass([READ_SCOPE], TEAM);
+    carrying = pass([READ_SCOPE], PERSON);
 
     const response = await request(
       app.getHttpServer() as Parameters<typeof request>[0],

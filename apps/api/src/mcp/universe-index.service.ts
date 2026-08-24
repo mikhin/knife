@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { ChunksService } from "@/chunks/chunks.service";
 import { buildUniverseIndex } from "@knife/universe";
+import type { User } from "@/generated/prisma/client";
 import type { UniverseIndex } from "@knife/universe";
 
 /**
@@ -18,15 +19,15 @@ export class UniverseIndexService {
 
   constructor(private readonly chunks: ChunksService) {}
 
-  async of(organizationId: string, projectId: string): Promise<UniverseIndex> {
-    const survey = await this.chunks.survey(organizationId, projectId);
+  async of(viewer: User, projectId: string): Promise<UniverseIndex> {
+    const survey = await this.chunks.survey(viewer, projectId);
     const mark = `${projectId}:${survey.count}:${survey.newest}`;
 
     if (this.held?.mark === mark) {
       return this.held.index;
     }
 
-    const chunks = await this.chunks.listByProject(organizationId, projectId);
+    const chunks = await this.chunks.listByProject(viewer, projectId);
     const index = buildUniverseIndex(chunks);
     this.held = { index, mark };
     return index;

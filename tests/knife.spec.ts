@@ -26,7 +26,7 @@ const openProjects = async (page: Page): Promise<void> => {
   if (
     !(await sidebar.getByRole("button", { name: "New project" }).isVisible())
   ) {
-    await page.getByRole("button", { name: "Team and projects" }).click();
+    await page.getByRole("button", { name: "Projects" }).click();
   }
   await expect(
     sidebar.getByRole("button", { name: "New project" }),
@@ -550,7 +550,7 @@ test.describe("Вселенная требований, в которой мож
     await openProjects(page);
     await page
       .getByTestId("project-list")
-      .getByRole("button", { name })
+      .getByRole("button", { exact: true, name })
       .click();
 
     const started = Date.now();

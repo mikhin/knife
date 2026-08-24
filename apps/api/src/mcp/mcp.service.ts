@@ -17,21 +17,21 @@ const LEVELS_SAID = REPEAT_LEVELS.map(
 ).join("; ");
 
 /**
- * Which team is asking comes from the pass the agent carried in, never from
- * the call itself. An agent that could name its own team would only need to
- * guess one to read somebody else's universe.
+ * Who is asking comes from the pass the agent carried in, never from the call
+ * itself. An agent that could name its own person would only need to guess an
+ * id to read somebody else's universe.
  */
-const teamOf = (auth: AuthInfo | undefined, needs: string): string => {
-  const organizationId = auth?.extra?.["organizationId"];
+const personOf = (auth: AuthInfo | undefined, needs: string): string => {
+  const userId = auth?.extra?.["userId"];
 
-  if (typeof organizationId !== "string") {
-    throw new Error("This pass names no team");
+  if (typeof userId !== "string") {
+    throw new Error("This pass names nobody");
   }
   if (!auth?.scopes.includes(needs)) {
     throw new Error(`This pass does not allow ${needs}`);
   }
 
-  return organizationId;
+  return userId;
 };
 
 /**
@@ -80,7 +80,7 @@ export class McpService {
         content: [
           {
             text: await this.duplicates.run(
-              teamOf(extra.authInfo, READ_SCOPE),
+              personOf(extra.authInfo, READ_SCOPE),
               project,
               level,
               limit,

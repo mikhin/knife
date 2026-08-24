@@ -4,7 +4,7 @@
 //
 // The rest of the tables hold no text at all. They answer one question the
 // universe cannot answer for itself — whose it is — and they exist only
-// because the door was opened to more than one team and to agents.
+// because the door was opened to other people and to agents.
 
 // The client is generated as CommonJS because the API is compiled as one:
 // the ESM client reaches for import.meta.url, which survives neither the
@@ -19,49 +19,51 @@ datasource db {
   provider = "postgresql"
 }
 
-model Organization {
+/// A person, known by the address Google vouched for. Nothing else about
+/// them is kept: no name, no picture, nothing that would have to be
+/// forgotten later.
+model User {
   id        String    @id @default(uuid()) @db.Uuid
-  name      String
+  email     String    @unique
+  googleSub String?   @unique @map("google_sub")
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  members   Member[]
   projects  Project[]
 
-  @@map("organizations")
-}
-
-/// A person in a team. An invitation is the same row with no googleSub yet:
-/// whoever signs in with that address takes it, so inviting needs no mail
-/// server and no token that could leak.
-model Member {
-  id             String       @id @default(uuid()) @db.Uuid
-  organizationId String       @map("organization_id") @db.Uuid
-  email          String
-  googleSub      String?      @unique @map("google_sub")
-  role           MemberRole   @default(MEMBER)
-  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  @@unique([organizationId, email])
-  @@index([email])
-  @@map("members")
-}
-
-enum MemberRole {
-  OWNER
-  MEMBER
+  @@map("users")
 }
 
 model Project {
-  id             String       @id @default(uuid()) @db.Uuid
-  organizationId String       @map("organization_id") @db.Uuid
-  name           String
-  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  chunks         Chunk[]
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id        String          @id @default(uuid()) @db.Uuid
+  ownerId   String          @map("owner_id") @db.Uuid
+  name      String
+  createdAt DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  access    ProjectAccess[]
+  chunks    Chunk[]
+  owner     User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  @@unique([organizationId, name])
-  @@index([organizationId])
+  @@unique([ownerId, name])
+  @@index([ownerId])
   @@map("projects")
+}
+
+/// One guest of one project, named by address rather than by account: an
+/// invitation to somebody who has never signed in is the same row as the
+/// access they get afterwards. Nothing is mailed and nothing has to be
+/// claimed — signing in with that address is the claim.
+///
+/// A guest works inside the universe: reads it, adds to it, deletes from it.
+/// Renaming the project, deleting it and deciding who else comes in stay
+/// with the owner, because those are decisions about the folder rather than
+/// about the text in it.
+model ProjectAccess {
+  projectId String   @map("project_id") @db.Uuid
+  email     String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, email])
+  @@index([email])
+  @@map("project_access")
 }
 
 model Chunk {

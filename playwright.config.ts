@@ -26,7 +26,7 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         /** Signed in as the team the setup project made. */
-        storageState: "tests/.auth/team.json",
+        storageState: "tests/.auth/owner.json",
       },
     },
   ],

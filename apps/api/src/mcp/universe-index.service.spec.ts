@@ -13,15 +13,18 @@ const chunk = (id: string, text: string): Chunk => ({
   text,
 });
 
-const TEAM = "3c9f1e2d-4a5b-4c6d-8e7f-9a0b1c2d3e4f";
+const VIEWER = {
+  createdAt: new Date("2026-08-21T10:00:00.000Z"),
+  email: "reader@knife.test",
+  googleSub: "a-sub",
+  id: "3c9f1e2d-4a5b-4c6d-8e7f-9a0b1c2d3e4f",
+};
 
 const chunks = {
   listByProject:
-    vi.fn<(organizationId: string, projectId: string) => Promise<Chunk[]>>(),
+    vi.fn<(viewer: unknown, projectId: string) => Promise<Chunk[]>>(),
   survey:
-    vi.fn<
-      (organizationId: string, projectId: string) => Promise<UniverseSurvey>
-    >(),
+    vi.fn<(viewer: unknown, projectId: string) => Promise<UniverseSurvey>>(),
 };
 
 const service = (): UniverseIndexService =>
@@ -42,8 +45,8 @@ describe("UniverseIndexService", () => {
   it("reads the universe once while nothing in it moves", async () => {
     const universe = service();
 
-    const first = await universe.of(TEAM, PROJECT);
-    const second = await universe.of(TEAM, PROJECT);
+    const first = await universe.of(VIEWER, PROJECT);
+    const second = await universe.of(VIEWER, PROJECT);
 
     expect(second).toBe(first);
     expect(chunks.listByProject).toHaveBeenCalledTimes(1);
@@ -52,7 +55,7 @@ describe("UniverseIndexService", () => {
 
   it("counts the universe again once a chunk arrives", async () => {
     const universe = service();
-    await universe.of(TEAM, PROJECT);
+    await universe.of(VIEWER, PROJECT);
 
     chunks.survey.mockResolvedValue({
       count: 2,
@@ -62,7 +65,7 @@ describe("UniverseIndexService", () => {
       chunk("a", "The night auditor closes the shift report."),
       chunk("b", "A shift report reaches payroll every Monday."),
     ]);
-    const after = await universe.of(TEAM, PROJECT);
+    const after = await universe.of(VIEWER, PROJECT);
 
     expect(after.size).toBe(2);
     expect(chunks.listByProject).toHaveBeenCalledTimes(2);
@@ -74,14 +77,14 @@ describe("UniverseIndexService", () => {
    */
   it("counts the universe again once a chunk is deleted", async () => {
     const universe = service();
-    await universe.of(TEAM, PROJECT);
+    await universe.of(VIEWER, PROJECT);
 
     chunks.survey.mockResolvedValue({
       count: 0,
       newest: "2026-08-21T10:00:00.000Z",
     });
     chunks.listByProject.mockResolvedValue([]);
-    const after = await universe.of(TEAM, PROJECT);
+    const after = await universe.of(VIEWER, PROJECT);
 
     expect(after.size).toBe(0);
     expect(chunks.listByProject).toHaveBeenCalledTimes(2);
@@ -89,12 +92,12 @@ describe("UniverseIndexService", () => {
 
   it("never answers about one project out of another's index", async () => {
     const universe = service();
-    await universe.of(TEAM, PROJECT);
+    await universe.of(VIEWER, PROJECT);
 
     chunks.listByProject.mockResolvedValue([
       chunk("z", "Peacocks roam the orangery unsupervised."),
     ]);
-    const other = await universe.of(TEAM, OTHER);
+    const other = await universe.of(VIEWER, OTHER);
 
     expect(other.byId.has("z")).toBe(true);
     expect(other.byId.has("a")).toBe(false);

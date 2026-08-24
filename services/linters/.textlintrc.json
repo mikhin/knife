@@ -1,6 +1,11 @@
 {
   "rules": {
+    "common-misspellings": true,
+    "en-max-word-count": {
+      "max": 30
+    },
     "no-todo": true,
+    "terminology": true,
     "write-good": true
   }
 }

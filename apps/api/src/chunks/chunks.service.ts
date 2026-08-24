@@ -4,7 +4,8 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { PrismaService } from "@/db/prisma.service";
-import type { Chunk as ChunkRecord } from "@/generated/prisma/client";
+import { ProjectsService } from "@/projects/projects.service";
+import type { Chunk as ChunkRecord, User } from "@/generated/prisma/client";
 import type { Chunk } from "@knife/contract";
 
 export type UniverseSurvey = {
@@ -22,13 +23,13 @@ const toView = (chunk: ChunkRecord): Chunk => ({
 
 @Injectable()
 export class ChunksService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly projects: ProjectsService,
+  ) {}
 
-  async listByProject(
-    organizationId: string,
-    projectId: string,
-  ): Promise<Chunk[]> {
-    await this.assertProjectExists(organizationId, projectId);
+  async listByProject(viewer: User, projectId: string): Promise<Chunk[]> {
+    await this.assertProjectExists(viewer, projectId);
     const chunks = await this.prisma.chunk.findMany({
       orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       where: { projectId },
@@ -36,12 +37,8 @@ export class ChunksService {
     return chunks.map(toView);
   }
 
-  async create(
-    organizationId: string,
-    projectId: string,
-    text: string,
-  ): Promise<Chunk> {
-    const [created] = await this.createMany(organizationId, projectId, [text]);
+  async create(viewer: User, projectId: string, text: string): Promise<Chunk> {
+    const [created] = await this.createMany(viewer, projectId, [text]);
     if (!created) {
       throw new BadRequestException("A chunk needs text");
     }
@@ -49,11 +46,11 @@ export class ChunksService {
   }
 
   async createMany(
-    organizationId: string,
+    viewer: User,
     projectId: string,
     texts: string[],
   ): Promise<Chunk[]> {
-    await this.assertProjectExists(organizationId, projectId);
+    await this.assertProjectExists(viewer, projectId);
     const cleaned = texts.map((text) => text.trim()).filter(Boolean);
     if (cleaned.length === 0) {
       return [];
@@ -72,11 +69,8 @@ export class ChunksService {
    * and downloading the universe to find out that nothing did would cost more
    * than the answer.
    */
-  async survey(
-    organizationId: string,
-    projectId: string,
-  ): Promise<UniverseSurvey> {
-    await this.assertProjectExists(organizationId, projectId);
+  async survey(viewer: User, projectId: string): Promise<UniverseSurvey> {
+    await this.assertProjectExists(viewer, projectId);
     const [count, newest] = await Promise.all([
       this.prisma.chunk.count({ where: { projectId } }),
       this.prisma.chunk.findFirst({
@@ -94,12 +88,8 @@ export class ChunksService {
    * has no undo, so a stale screen must fail rather than take a chunk out of
    * a universe nobody was looking at.
    */
-  async remove(
-    organizationId: string,
-    projectId: string,
-    id: string,
-  ): Promise<void> {
-    await this.assertProjectExists(organizationId, projectId);
+  async remove(viewer: User, projectId: string, id: string): Promise<void> {
+    await this.assertProjectExists(viewer, projectId);
     const deleted = await this.prisma.chunk.deleteMany({
       where: { id, projectId },
     });
@@ -108,16 +98,11 @@ export class ChunksService {
     }
   }
 
+  /** Owner or guest: inside a universe the two do the same work. */
   private async assertProjectExists(
-    organizationId: string,
+    viewer: User,
     projectId: string,
   ): Promise<void> {
-    const project = await this.prisma.project.findFirst({
-      select: { id: true },
-      where: { id: projectId, organizationId },
-    });
-    if (!project) {
-      throw new NotFoundException("No such project");
-    }
+    await this.projects.assertReachable(viewer, projectId);
   }
 }
