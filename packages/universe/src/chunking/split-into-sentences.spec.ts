@@ -4,8 +4,41 @@ import { splitIntoSentences } from "./split-into-sentences";
 describe("splitIntoSentences", () => {
   it("cuts on a dot, a semicolon and a colon", () => {
     expect(
-      splitIntoSentences("One rule. Two rules; three rules: four rules"),
-    ).toEqual(["One rule.", "Two rules;", "three rules:", "four rules"]);
+      splitIntoSentences(
+        "One rule. Two rules; the third rule of the house: four rules",
+      ),
+    ).toEqual([
+      "One rule.",
+      "Two rules;",
+      "the third rule of the house:",
+      "four rules",
+    ]);
+  });
+
+  it("keeps a label with the sentence it announces", () => {
+    expect(
+      splitIntoSentences("Question: what happens to an unclaimed card?"),
+    ).toEqual(["Question: what happens to an unclaimed card?"]);
+  });
+
+  it("keeps a label of several words with what follows", () => {
+    expect(
+      splitIntoSentences("Acceptance criteria: the card is returned by noon."),
+    ).toEqual(["Acceptance criteria: the card is returned by noon."]);
+  });
+
+  /** Two labels in a row are still one announcement of one sentence. */
+  it("carries a run of labels through to the sentence", () => {
+    expect(
+      splitIntoSentences("Setup: Question: who signs the report?"),
+    ).toEqual(["Setup: Question: who signs the report?"]);
+  });
+
+  it("keeps a label that has nothing behind it rather than dropping text", () => {
+    expect(splitIntoSentences("A rule stands. Question:")).toEqual([
+      "A rule stands.",
+      "Question:",
+    ]);
   });
 
   it("keeps the mark it cut on", () => {

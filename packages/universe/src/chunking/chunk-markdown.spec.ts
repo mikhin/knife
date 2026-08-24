@@ -11,8 +11,7 @@ describe("chunkMarkdown", () => {
       "The shift starts at eight.",
       "Breaks are unpaid;",
       "overtime is not.",
-      "Rule:",
-      "the manager approves it.",
+      "Rule: the manager approves it.",
     ]);
   });
 
