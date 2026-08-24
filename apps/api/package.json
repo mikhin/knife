@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "scripts": {
     "build": "nest build && tsc-alias -p tsconfig.build.json",
-    "dev": "nest start --watch",
+    "dev": "nest start -b swc --watch",
     "postinstall": "prisma generate",
     "start": "node dist/main.js",
     "test": "vitest --run --reporter=dot",
@@ -33,6 +33,7 @@
     "@nestjs/cli": "^11.0.10",
     "@nestjs/schematics": "^11.0.9",
     "@nestjs/testing": "^11.2.1",
+    "@swc/cli": "^0.8.1",
     "@swc/core": "^1.13.5",
     "@types/express": "^5.0.6",
     "@types/node": "^24.10.0",
