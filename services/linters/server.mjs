@@ -193,6 +193,9 @@ const harperFindings = async (items) => {
     const batch = items.slice(start, start + HARPER_BATCH);
     const lines = batch.map(asLine);
     const offsets = lineOffsets(lines);
+    // One batch at a time: a single linter serves the process, and handing it
+    // the whole universe at once is exactly what these batches avoid.
+    // oxlint-disable-next-line no-await-in-loop
     const lints = await linter.lint(lines.join("\n"), {
       language: "plaintext",
     });
