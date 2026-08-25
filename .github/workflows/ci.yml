@@ -85,6 +85,10 @@ jobs:
           cache: "pnpm"
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
+      # Vale, textlint, proselint and Harper live in a container. A scenario
+      # that calls them and skips itself when they are absent proves nothing,
+      # so the container is raised here and the scenario is allowed to fail.
+      - run: docker compose up -d --wait linters
       - run: pnpm e2e
 
   build:
