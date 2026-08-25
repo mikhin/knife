@@ -99,6 +99,12 @@ export const ShareDialog = ({ onClose, project }: Props): JSX.Element => {
           Invite
         </button>
       </form>
+
+      <div className="mt-4 flex justify-end">
+        <button className="text-xs" onClick={onClose} type="button">
+          Done
+        </button>
+      </div>
     </Dialog>
   );
 };

@@ -167,6 +167,18 @@ test.describe("Проект мой, и я сам решаю, кого к нем�
 
     await page.getByRole("button", { name: `Remove ${OTHER.email}` }).click();
     await expect(page.getByTestId("guest-list")).toContainText("Nobody else");
+
+    // Наговорился — и вышел, не угадывая, что диалог держит одна лишь Escape.
+    await page.getByRole("button", { name: "Done" }).click();
+    await expect(page.getByTestId("guest-list")).toHaveCount(0);
+    await expect(page.getByTestId("project-list")).toBeVisible();
+
+    // Клик по затемнённой странице вокруг диалога говорит то же самое.
+    await page.getByRole("button", { name: `Share ${name}` }).click();
+    await expect(page.getByTestId("guest-list")).toBeVisible();
+    await page.mouse.click(20, 20);
+    await expect(page.getByTestId("guest-list")).toHaveCount(0);
+    await expect(page.getByTestId("project-list")).toBeVisible();
   });
 });
 
