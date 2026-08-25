@@ -19,12 +19,14 @@ import {
  * has to.
  *
  * Guarded by the name: pointing E2E_DATABASE_URL at a real database must
- * never wipe it.
+ * never wipe it. The name is the whole guard — CI ran without this step for
+ * a while, and every scenario there died on the storage state this step is
+ * what writes.
  */
 export const STORAGE_STATE = path.join(__dirname, ".auth", "owner.json");
 
 setup("вселенная пуста перед прогоном", async () => {
-  if (!DATABASE.endsWith("_e2e") || process.env.CI) {
+  if (!DATABASE.endsWith("_e2e")) {
     return;
   }
 

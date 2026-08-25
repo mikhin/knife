@@ -8,6 +8,11 @@ import { execFileSync } from "node:child_process";
  * global setup: the runner starts its web servers first, and by then the
  * database has to be up already. Emptying it is global setup, because the
  * servers — and this command with them — are skipped when they are reused.
+ *
+ * The same road on a laptop and on CI. A suite that raises its database one
+ * way here and another way there is a suite whose green says less than it
+ * looks: the steps only CI takes are the steps nobody ever runs before
+ * pushing.
  */
 const DATABASE_URL =
   process.env.E2E_DATABASE_URL ??
@@ -70,10 +75,8 @@ const createDatabase = (name: string): void => {
   }
 };
 
-if (!process.env.CI) {
-  startPostgres();
-  createDatabase(new URL(DATABASE_URL).pathname.slice(1));
-}
+startPostgres();
+createDatabase(new URL(DATABASE_URL).pathname.slice(1));
 
 run("pnpm", ["--filter", "@knife/api", "exec", "prisma", "migrate", "deploy"], {
   DATABASE_URL,

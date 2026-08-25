@@ -59,23 +59,9 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_USER: knife
-          POSTGRES_PASSWORD: knife
-          POSTGRES_DB: knife
-        ports:
-          - 5433:5432
-        options: >-
-          --health-cmd "pg_isready -U knife -d knife"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 10
-    env:
-      # The suite migrates this database itself; on CI it skips the container.
-      E2E_DATABASE_URL: postgres://knife:knife@localhost:5433/knife
+    # Postgres comes up the way it does on a laptop: the suite raises the
+    # compose service itself and makes its own database. A service container
+    # here would be a second road nobody walks before pushing.
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
