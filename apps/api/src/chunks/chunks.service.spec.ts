@@ -12,6 +12,7 @@ const prisma = {
   chunk: {
     createManyAndReturn: vi.fn<(args: Args) => Promise<ChunkRecord[]>>(),
     deleteMany: vi.fn<(args: Args) => Promise<{ count: number }>>(),
+    findFirst: vi.fn<(args: Args) => Promise<ChunkRecord | null>>(),
     findMany: vi.fn<(args: Args) => Promise<ChunkRecord[]>>(),
   },
 };
@@ -40,6 +41,7 @@ describe("ChunksService", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     projects.assertReachable.mockResolvedValue(undefined);
+    prisma.chunk.findFirst.mockResolvedValue(null);
 
     const moduleRef = await Test.createTestingModule({
       providers: [
@@ -87,6 +89,24 @@ describe("ChunksService", () => {
     await expect(
       chunks.remove(VIEWER, "universe", "gone"),
     ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  /**
+   * Nothing is left to look the wording up in afterwards, so the deletion
+   * itself has to say what is now missing from the universe.
+   */
+  it("hands back what it took out", async () => {
+    prisma.chunk.findFirst.mockResolvedValue(record("chunk-1", "A rule."));
+    prisma.chunk.deleteMany.mockResolvedValue({ count: 1 });
+
+    const gone = await chunks.remove(VIEWER, "universe", "chunk-1");
+
+    expect(gone).toEqual({
+      createdAt: "2026-08-21T10:00:00.000Z",
+      id: "chunk-1",
+      projectId: "universe",
+      text: "A rule.",
+    });
   });
 
   it("refuses a universe this person cannot reach", async () => {

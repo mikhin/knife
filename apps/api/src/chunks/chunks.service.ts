@@ -87,15 +87,23 @@ export class ChunksService {
    * Scoped to the project the caller believes the chunk belongs to. Deletion
    * has no undo, so a stale screen must fail rather than take a chunk out of
    * a universe nobody was looking at.
+   *
+   * What went is read before it goes and handed back: an id alone would say
+   * a deletion happened without saying what is now missing, and there is
+   * nowhere left to look it up afterwards.
    */
-  async remove(viewer: User, projectId: string, id: string): Promise<void> {
+  async remove(viewer: User, projectId: string, id: string): Promise<Chunk> {
     await this.assertProjectExists(viewer, projectId);
+    const doomed = await this.prisma.chunk.findFirst({
+      where: { id, projectId },
+    });
     const deleted = await this.prisma.chunk.deleteMany({
       where: { id, projectId },
     });
-    if (deleted.count === 0) {
+    if (!doomed || deleted.count === 0) {
       throw new NotFoundException("No such chunk in this project");
     }
+    return toView(doomed);
   }
 
   /** Owner or guest: inside a universe the two do the same work. */

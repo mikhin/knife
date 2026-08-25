@@ -53,13 +53,15 @@ export class ChunksController {
     return this.chunks.createMany(viewer, projectId, dto.texts);
   }
 
+  /** The service hands back what it took out; a screen has no use for it,
+   * so 204 says the deletion itself is the whole answer. */
   @Delete("projects/:projectId/chunks/:id")
   @HttpCode(204)
-  remove(
+  async remove(
     @SignedIn() viewer: User,
     @Param("projectId", ParseUUIDPipe) projectId: string,
     @Param("id", ParseUUIDPipe) id: string,
   ): Promise<void> {
-    return this.chunks.remove(viewer, projectId, id);
+    await this.chunks.remove(viewer, projectId, id);
   }
 }

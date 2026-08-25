@@ -35,3 +35,6 @@ export {
 export type { RepeatLevel, RepeatLevelId } from "./universe/repeat-levels";
 export { searchUniverse } from "./universe/search-universe";
 export { sharedWordSpans } from "./universe/shared-word-spans";
+/** The same cut into words the index was built with: a caller that asked
+ * about "refunds" has to arrive at the stem the universe holds. */
+export { tokenizeText } from "./text/tokenize-text";
