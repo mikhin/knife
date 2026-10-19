@@ -12,11 +12,12 @@ Needs Node 24.4.1 (`.nvmrc`), pnpm and Docker.
 
 ```sh
 pnpm install
+cp apps/api/.env.example apps/api/.env   # fill in GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET
 pnpm linters:up   # Vale, textlint, proselint, Harper; only the Lint button needs them
 pnpm dev          # Postgres + migrations + api :3000 + web :5173
 ```
 
-Open http://localhost:5173 and sign in with Google. `apps/api/.env` is committed with working dev credentials.
+Open http://localhost:5173 and sign in with Google. Ask Yuri for the Google credentials, or make your own OAuth client as `.env.example` describes.
 
 ## Agent (MCP)
 
