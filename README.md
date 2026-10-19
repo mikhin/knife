@@ -1,5 +1,7 @@
 # Knife
 
+![Knife flags fluff, things said twice, contradictions and vague lines in a long spec](docs/what-it-does.svg)
+
 Paste requirement docs (markdown or plain text, English) into a project. Knife cuts them into sentence-sized chunks and shows duplicates, contradictions and dangling chunks across everything in the project. You or your agent delete the slop. No AI inside.
 
 What it should do and why: [docs/requirements.md](docs/requirements.md).

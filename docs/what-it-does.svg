@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 230" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <g font-size="13" fill="#8e8e93">
+    <text x="20" y="22">your 40-page spec</text>
+    <text x="370" y="22">what Knife flags</text>
+  </g>
+
+  <g fill="#c7c7cc">
+    <rect x="20" y="40" width="230" height="7" rx="3.5"/>
+    <rect x="20" y="56" width="210" height="7" rx="3.5"/>
+    <rect x="20" y="72" width="230" height="7" rx="3.5"/>
+    <rect x="20" y="88" width="190" height="7" rx="3.5"/>
+    <rect x="20" y="104" width="190" height="7" rx="3.5"/>
+    <rect x="20" y="120" width="230" height="7" rx="3.5"/>
+    <rect x="20" y="136" width="170" height="7" rx="3.5"/>
+    <rect x="20" y="152" width="225" height="7" rx="3.5"/>
+    <rect x="20" y="168" width="230" height="7" rx="3.5"/>
+    <rect x="20" y="184" width="200" height="7" rx="3.5"/>
+    <rect x="20" y="200" width="120" height="7" rx="3.5"/>
+  </g>
+
+  <g fill="none" stroke="#ff7262" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M280 120 H335"/>
+    <path d="M325 110 L337 120 L325 130"/>
+  </g>
+
+  <g fill="#c7c7cc">
+    <rect x="370" y="40" width="170" height="7" rx="3.5"/>
+    <rect x="370" y="72" width="170" height="7" rx="3.5"/>
+    <rect x="370" y="120" width="170" height="7" rx="3.5"/>
+    <rect x="370" y="168" width="170" height="7" rx="3.5"/>
+    <rect x="370" y="200" width="90" height="7" rx="3.5"/>
+  </g>
+  <g fill="#ff7262">
+    <rect x="370" y="56" width="155" height="7" rx="3.5"/>
+    <rect x="370" y="88" width="140" height="7" rx="3.5"/>
+    <rect x="370" y="104" width="140" height="7" rx="3.5"/>
+    <rect x="370" y="136" width="125" height="7" rx="3.5"/>
+    <rect x="370" y="152" width="165" height="7" rx="3.5"/>
+    <rect x="370" y="184" width="148" height="7" rx="3.5"/>
+  </g>
+
+  <g fill="none" stroke="#ff7262" stroke-width="1.5">
+    <path d="M548 88 h6 v23 h-6"/>
+    <path d="M548 136 h6 v23 h-6"/>
+  </g>
+  <g font-size="12" fill="#ff7262">
+    <text x="548" y="64">fluff</text>
+    <text x="562" y="104">said twice</text>
+    <text x="562" y="152">contradicts</text>
+    <text x="548" y="192">vague</text>
+  </g>
+</svg>
